@@ -1,7 +1,9 @@
 #include <Arduino.h>
 #include "BLDC_driver.h"
+#include "latch.h"
 
 BLDC_driver BLDC;
+Latch latch;
 
 
 void setup() {
@@ -10,6 +12,9 @@ void setup() {
   Serial.println("Booted HoverGate V2!!!");
   BLDC.begin();
   BLDC.enable();
+
+  latch.begin();
+
   Serial.println("BLDC driver inited, entering loop...");
 
 }
@@ -19,6 +24,7 @@ void loop() {
   static uint32_t last_t = millis();
   // put your main code here, to run repeatedly:
   BLDC.handler();
+  latch.handler();
 
   // 1 per sec event
   if(millis() - last_t > 1000){
@@ -26,6 +32,7 @@ void loop() {
 
     if(n==0){
       BLDC.set_pwm(50);
+      latch.retract();
       Serial.println("BLDC set to 50");
 
     }
@@ -59,16 +66,17 @@ void loop() {
     //   Serial.println("BLDC set to 0");
 
     // }
-    if(n==20){
+    if(n==10){
       BLDC.disable();
       BLDC.reset_encoder();
+      latch.extend();
       Serial.println("BLDC dissable");
 
     }
     
 
 
-    Serial.println("phase current: " + String(BLDC.get_current()));
+    // Serial.println("phase current: " + String(BLDC.get_current()));
     n++;
   }
 
