@@ -35,8 +35,19 @@ BLDC_driver::BLDC_driver(){
 
 
 void BLDC_driver::begin(){
-    //todo: implement hardcoded calibration for halls and current sense to skip alignment
     //todo: set current limits?
+
+    //do hardware shunt amp offset calib
+    pinMode(drv_enable_pin, OUTPUT);
+    pinMode(drv_cal_pin, OUTPUT);
+    digitalWrite(drv_enable_pin, HIGH);
+    delay(100);
+    digitalWrite(drv_cal_pin, HIGH);
+    delay(100);
+    digitalWrite(drv_cal_pin, LOW);
+    delay(100);
+    digitalWrite(drv_enable_pin, LOW);
+    Serial.println("Hardware shunt amp calib done!");
 
     //needed to init current sense adc channels for some reason??? looks like SimpleFOC bug
     analogRead(drv_snsA_pin);
@@ -50,6 +61,7 @@ void BLDC_driver::begin(){
 
     // initialize hall sensor hardware
     drv_sensor.init();
+    Serial.println("sensor init done!");
     //register callbacks for hall interrupts
     drv_sensor.enableInterrupts(drv_int_hall_A, drv_int_hall_B, drv_int_hall_C);
 
@@ -63,6 +75,7 @@ void BLDC_driver::begin(){
 
     //init driver
     drv_driver.init();
+    Serial.println("driver init done!");
 
     //link motor and driver
     drv_motor.linkDriver(&drv_driver);
@@ -91,6 +104,7 @@ void BLDC_driver::begin(){
 
     //init motor
     drv_motor.init();
+    Serial.println("M: motor init done!");
     //todo: check if successful needed?
 
     //init current sense
@@ -103,12 +117,32 @@ void BLDC_driver::begin(){
     //link current sense to motor
     drv_motor.linkCurrentSense(&drv_current_sense);
 
-    //align current sense
-    drv_current_sense.driverAlign(drv_align_voltage);
+    // no need, done in initFOC automatically
+    // //align current sense
+    // drv_current_sense.driverAlign(drv_align_voltage);
+    // Serial.println("M: current sensor align done!");
+
+    //skip current sense align if #define set
+    #ifdef drv_skip_current_sense_align
+    drv_current_sense.skip_align = true;
+    #endif
+
+    //skip hall sensor align if #define set
+    #ifdef drv_skip_hall_align
+    drv_motor.zero_electric_angle = 3.141593f;
+    drv_motor.sensor_direction = CW;
+    #endif
 
     //init FOC
     drv_motor.initFOC();
+    Serial.println("FOC init done!");
 
+    #ifndef drv_skip_hall_align
+    Serial.printf("Hall calib: zero: %f, dir: %d \n", drv_motor.zero_electric_angle, drv_motor.sensor_direction);
+    Serial.println("help: dir vals: 1:CW  -1:CCW  0:UNKNOWN");
+    #endif
+
+    disable();
     //todo: is driver now enabled or not? check!
 
 
@@ -159,6 +193,9 @@ float BLDC_driver::get_angle(){
 //returns phase current amplitude in A
 float BLDC_driver::get_current(){
     return drv_current_sense.getDCCurrent();
+
+    //just for test
+    // return drv_motor.shaftVelocity();
 }
 
 void BLDC_driver::handler(){

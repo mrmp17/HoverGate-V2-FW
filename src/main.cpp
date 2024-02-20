@@ -11,7 +11,7 @@ void setup() {
   delay(3000);
   Serial.println("Booted HoverGate V2!!!");
   BLDC.begin();
-  BLDC.enable();
+  // BLDC.enable();
 
   latch.begin();
 
@@ -30,10 +30,18 @@ void loop() {
   if(millis() - last_t > 1000){
     last_t = millis();
 
-    if(n==0){
+    if(n==5){
+      BLDC.enable();
       BLDC.set_pwm(50);
       latch.retract();
       Serial.println("BLDC set to 50");
+
+    }
+
+    if(n==10){
+      BLDC.set_pwm(-50);
+      latch.retract();
+      Serial.println("BLDC set to -50");
 
     }
     // if(n==1){
@@ -66,7 +74,7 @@ void loop() {
     //   Serial.println("BLDC set to 0");
 
     // }
-    if(n==10){
+    if(n==20){
       BLDC.disable();
       BLDC.reset_encoder();
       latch.extend();
@@ -76,7 +84,10 @@ void loop() {
     
 
 
-    // Serial.println("phase current: " + String(BLDC.get_current()));
+    Serial.println("phase current: " + String(BLDC.get_current()));
+    Serial.println("angle " + String(BLDC.get_angle()));
+
+
     n++;
   }
 

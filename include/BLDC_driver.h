@@ -9,6 +9,8 @@
 #include "driver.h"
 #include <SimpleFOC.h>
 
+#define drv_power_sply 15.0f
+
 #define drv_polePairs 15
 #define drv_pwmA_pin 12
 #define drv_pwmB_pin 13
@@ -20,9 +22,9 @@
 #define drv_hallA_pin 38
 #define drv_hallB_pin 37
 #define drv_hallC_pin 36
+#define drv_cal_pin 40
 #define drv_shunt_res 0.003f
-#define drv_shunt_gain 20.0f
-#define drv_power_sply 15.0f
+#define drv_shunt_gain -20.0f
 #define drv_driver_volt_limit 15.0f
 #define drv_align_voltage 2.0f
 
@@ -33,13 +35,23 @@
 //output of get_encoder is in ticks per rev (90 for hub motor) (from legacy implementation)
 #define sw_encoder_ticks_per_rev 90
 
+// hardcoded hall offset and direction (used only if #define drv_skip_hall_align)
+#define drv_hall_offset 3.141593f
+#define drv_hall_direction CW
+
 // select torque controller
-// #define drv_torque_control_voltage
-#define drv_torque_control_phase_current_ampl
+#define drv_torque_control_voltage
+// #define drv_torque_control_phase_current_ampl
 // #define drv_torque_control_foc_current
 
 // select debug
 #define SIMPLEFOC_DEBUG_ENABLE
+
+//skip current sense alignment (if pins and gains set correctly, not needed)
+#define drv_skip_current_sense_align
+
+//skip hall sensor alignment (if offset and direction known, not needed)
+#define drv_skip_hall_align
 
 
 
