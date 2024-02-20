@@ -10,13 +10,13 @@
 // - hall interrupt handler function pointers cant be passed to register as callbacks if inside class
 
 //simplefoc motor
-BLDCMotor drv_motor = BLDCMotor(drv_polePairs);
+static BLDCMotor drv_motor = BLDCMotor(drv_polePairs);
 //simplefoc driver
-BLDCDriver3PWM drv_driver = BLDCDriver3PWM(drv_pwmA_pin, drv_pwmB_pin, drv_pwmC_pin, drv_enable_pin);
+static BLDCDriver3PWM drv_driver = BLDCDriver3PWM(drv_pwmA_pin, drv_pwmB_pin, drv_pwmC_pin, drv_enable_pin);
 //simplefoc hall sensor
-HallSensor drv_sensor = HallSensor(drv_hallA_pin, drv_hallB_pin, drv_hallC_pin, drv_polePairs);
+static HallSensor drv_sensor = HallSensor(drv_hallA_pin, drv_hallB_pin, drv_hallC_pin, drv_polePairs);
 //simplefoc current sensor
-LowsideCurrentSense drv_current_sense = LowsideCurrentSense(drv_shunt_res, drv_shunt_gain, drv_snsA_pin, drv_snsB_pin, drv_snsC_pin);
+static LowsideCurrentSense drv_current_sense = LowsideCurrentSense(drv_shunt_res, drv_shunt_gain, drv_snsA_pin, drv_snsB_pin, drv_snsC_pin);
 
 // interrupt routine initialization
 void drv_int_hall_A(){drv_sensor.handleA();}
