@@ -8,6 +8,8 @@
 // - access this from other code (eg. from main) might be usefull during debugging
 // - BLDCMotor, etc, classes have no default constructors, can't alocate them in class without params
 // - hall interrupt handler function pointers cant be passed to register as callbacks if inside class
+// - this is all fixble, but enableInterrupts in simplefoc is not implemented to take std::function,
+//   so it's impossible to register a class member function as interrupt
 
 //simplefoc motor
 static BLDCMotor drv_motor = BLDCMotor(drv_polePairs);
@@ -152,6 +154,11 @@ void BLDC_driver::reset_encoder(){
 float BLDC_driver::get_angle(){
     //substract zero value and convert to degrees
     return ((drv_sensor.getAngle()-encoder_zero_val)/6.28318530718f)*360.0f;
+}
+
+//returns phase current amplitude in A
+float BLDC_driver::get_current(){
+    return drv_current_sense.getDCCurrent();
 }
 
 void BLDC_driver::handler(){

@@ -59,7 +59,7 @@ void loop() {
     //   Serial.println("BLDC set to 0");
 
     // }
-    if(n==2){
+    if(n==20){
       BLDC.disable();
       BLDC.reset_encoder();
       Serial.println("BLDC dissable");
@@ -68,7 +68,7 @@ void loop() {
     
 
 
-    Serial.println("Encoder: " + String(BLDC.get_angle()));
+    Serial.println("phase current: " + String(BLDC.get_current()));
     n++;
   }
 

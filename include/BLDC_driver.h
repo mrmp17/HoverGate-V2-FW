@@ -9,7 +9,7 @@
 #include "driver.h"
 #include <SimpleFOC.h>
 
-#define drv_polePairs 1
+#define drv_polePairs 15
 #define drv_pwmA_pin 12
 #define drv_pwmB_pin 13
 #define drv_pwmC_pin 14
@@ -34,8 +34,8 @@
 #define sw_encoder_ticks_per_rev 90
 
 // select torque controller
-#define drv_torque_control_voltage
-// #define drv_torque_control_phase_current_ampl
+// #define drv_torque_control_voltage
+#define drv_torque_control_phase_current_ampl
 // #define drv_torque_control_foc_current
 
 // select debug
@@ -58,7 +58,7 @@ public:
     int32_t get_encoder() override;
     float get_angle() override;
     void reset_encoder() override;
-    // float get_current() override {return 0;};
+    float get_current() override;
     // void ramp_pwm(int16_t pwm_to, uint32_t time_ms) override;
     // bool is_ramp_active() override;
 
