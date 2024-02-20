@@ -25,20 +25,26 @@ void Latch::extend() {
 }
 
 void Latch::handler() {
+    // latch state machine. voltage is set at transitions (not in states) to optimise cpu time
     static uint32_t retract_start_time = 0;
     static uint8_t loopCtrl = 0;
     switch(loopCtrl){
         case 0:
             //latch current zero 
-            set_voltage_pwm(0.0);
+            // set_voltage_pwm(0.0);
             if(cmd_state == 1) loopCtrl = 1;
             break;
         case 1:
             //set latch current to full
             set_voltage_pwm(latch_retract_voltage);
             retract_start_time = millis();
-            if(cmd_state == 0) loopCtrl = 0;
-            loopCtrl = 2;
+            if(cmd_state == 0){
+                loopCtrl = 0;
+                set_voltage_pwm(0.0);
+            }
+            else{
+                loopCtrl = 2;
+            }
             break;
         case 2:
             if(millis() - retract_start_time >= latch_retract_time){
@@ -46,10 +52,16 @@ void Latch::handler() {
                 set_voltage_pwm(latch_hold_voltage);
                 loopCtrl = 3;
             }
-            if(cmd_state == 0) loopCtrl = 0;
+            if(cmd_state == 0){
+                loopCtrl = 0;
+                set_voltage_pwm(0.0);
+            }
             break;
         case 3:
-            if(cmd_state == 0) loopCtrl = 0;
+            if(cmd_state == 0){
+                loopCtrl = 0;
+                set_voltage_pwm(0.0);
+            }
             break;
     }
 }
