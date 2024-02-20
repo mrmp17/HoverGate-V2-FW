@@ -141,6 +141,19 @@ void BLDC_driver::set_pwm(int16_t pwm){
     #endif
 }
 
+int32_t BLDC_driver::get_encoder(){
+    return int((((drv_sensor.getAngle()-encoder_zero_val)/6.28318530718f)*sw_encoder_ticks_per_rev));
+}
+
+void BLDC_driver::reset_encoder(){
+    encoder_zero_val = drv_sensor.getAngle();
+}
+
+float BLDC_driver::get_angle(){
+    //substract zero value and convert to degrees
+    return ((drv_sensor.getAngle()-encoder_zero_val)/6.28318530718f)*360.0f;
+}
+
 void BLDC_driver::handler(){
     drv_motor.loopFOC();
 }

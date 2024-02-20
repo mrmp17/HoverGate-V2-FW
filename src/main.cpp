@@ -29,16 +29,46 @@ void loop() {
       Serial.println("BLDC set to 50");
 
     }
-    if(n==5){
-      BLDC.set_pwm(-50);
-      Serial.println("BLDC set to 50");
+    // if(n==1){
+    //   BLDC.set_pwm(100);
+    //   Serial.println("BLDC set to 100");
 
-    }
-    if(n==10){
+    // }
+    // if(n==3){
+    //   BLDC.set_pwm(0);
+    //   Serial.println("BLDC set to 0");
+
+    // }
+    // if(n==5){
+    //   BLDC.set_pwm(-50);
+    //   Serial.println("BLDC set to -50");
+
+    // }
+    // if(n==8){
+    //   BLDC.disable();
+    //   Serial.println("BLDC disabled");
+    //   BLDC.set_pwm(0);
+    // }
+    // if(n==10){
+    //   BLDC.enable();
+    //   BLDC.set_pwm(50);
+    //   Serial.println("BLDC enable set to 50");
+    // }
+    // if(n==15){
+    //   BLDC.set_pwm(0);
+    //   Serial.println("BLDC set to 0");
+
+    // }
+    if(n==2){
       BLDC.disable();
-      Serial.println("BLDC disabled");
-    }
+      BLDC.reset_encoder();
+      Serial.println("BLDC dissable");
 
+    }
+    
+
+
+    Serial.println("Encoder: " + String(BLDC.get_angle()));
     n++;
   }
 

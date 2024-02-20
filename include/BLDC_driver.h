@@ -9,7 +9,7 @@
 #include "driver.h"
 #include <SimpleFOC.h>
 
-#define drv_polePairs 15
+#define drv_polePairs 1
 #define drv_pwmA_pin 12
 #define drv_pwmB_pin 13
 #define drv_pwmC_pin 14
@@ -29,6 +29,9 @@
 //set_pwm maps -1000 to 1000 maps to +- these values (depending on voltage or phase current torque control)
 #define drv_max_usr_volt 24.0f
 #define drv_max_usr_torque_curr 10.0f
+
+//output of get_encoder is in ticks per rev (90 for hub motor) (from legacy implementation)
+#define sw_encoder_ticks_per_rev 90
 
 // select torque controller
 #define drv_torque_control_voltage
@@ -52,8 +55,9 @@ public:
     void set_pwm(int16_t pwm) override;  //+- 1000 //TODO: map to 0-2k timer values
     void handler() override;
     // int16_t get_pwm() override;
-    // int32_t get_encoder() override;
-    // void reset_encoder() override;
+    int32_t get_encoder() override;
+    float get_angle() override;
+    void reset_encoder() override;
     // float get_current() override {return 0;};
     // void ramp_pwm(int16_t pwm_to, uint32_t time_ms) override;
     // bool is_ramp_active() override;
@@ -71,7 +75,7 @@ private:
     bool BLDC_direction = false;
     uint16_t BLDC_pwm_set_value = 0; //this should be 0-2k - direct pwm value
     int16_t BLDC_user_pwm = 0;  //this is value from set_pwm call (-1000 to 1000)
-    int32_t encoder_steps = 0;
+    float encoder_zero_val = 0;
 
 
 
