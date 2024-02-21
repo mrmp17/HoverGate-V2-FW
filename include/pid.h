@@ -1,5 +1,5 @@
-#ifndef PID_H
-#define PID_H
+#ifndef HOVERGATE_V2_FW_PID_H
+#define HOVERGATE_V2_FW_PID_H
 
 
 class Pid {
