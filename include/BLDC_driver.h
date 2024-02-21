@@ -8,6 +8,7 @@
 
 #include "driver.h"
 #include <SimpleFOC.h>
+#define auxpin 11
 
 #define drv_power_sply 15.0f
 
@@ -27,6 +28,8 @@
 #define drv_shunt_gain -20.0f
 #define drv_driver_volt_limit 15.0f
 #define drv_align_voltage 2.0f
+
+
 
 //set_pwm maps -1000 to 1000 maps to +- these values (depending on voltage or phase current torque control)
 #define drv_max_usr_volt 24.0f

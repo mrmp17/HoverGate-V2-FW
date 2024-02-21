@@ -8,6 +8,7 @@ Latch latch;
 
 
 void setup() {
+  pinMode(11, OUTPUT);
   Serial.begin(115200);
   delay(3000);
   Serial.println("Booted HoverGate V2!!!");
@@ -27,8 +28,11 @@ void loop() {
   static uint32_t n = 0;
   static uint32_t last_t = millis();
   // put your main code here, to run repeatedly:
+  digitalWrite(11, HIGH);
   BLDC.handler();
+  digitalWrite(11, LOW);
   latch.handler();
+  
 
   // 1 per sec event
   if(millis() - last_t > 1000){
@@ -88,8 +92,8 @@ void loop() {
     
 
 
-    Serial.println("phase current: " + String(BLDC.get_current()));
-    Serial.println("angle " + String(BLDC.get_angle()));
+    // Serial.println("phase current: " + String(BLDC.get_current()));
+    // Serial.println("angle " + String(BLDC.get_angle()));
 
 
     n++;

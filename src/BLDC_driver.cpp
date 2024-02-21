@@ -4,6 +4,8 @@
 
 #include "BLDC_driver.h"
 
+
+
 //why is this below here, not inside the class?
 // - access this from other code (eg. from main) might be usefull during debugging
 // - BLDCMotor, etc, classes have no default constructors, can't alocate them in class without params
@@ -102,6 +104,7 @@ void BLDC_driver::begin(){
     
     drv_motor.controller = MotionControlType::torque;
 
+
     //init motor
     drv_motor.init();
     Serial.println("M: motor init done!");
@@ -142,7 +145,13 @@ void BLDC_driver::begin(){
     Serial.println("help: dir vals: 1:CW  -1:CCW  0:UNKNOWN");
     #endif
 
-    disable();
+    //add monitoring
+    drv_motor.useMonitoring(Serial);
+    drv_motor.monitor_variables = _MON_CURR_Q | _MON_CURR_D | _MON_ANGLE;
+    drv_motor.monitor_downsample = 10;
+
+    drv_driver.disable();
+    BLDC_enabled = false;
     //todo: is driver now enabled or not? check!
 
 
@@ -167,13 +176,13 @@ void BLDC_driver::set_pwm(int16_t pwm){
     if(pwm<-1000) pwm = -1000;
 
     #ifdef drv_torque_control_voltage
-    drv_motor.move(pwm/1000.0f*drv_max_usr_volt);
+    drv_motor.target = (pwm/1000.0f*drv_max_usr_volt);
     #endif
     #ifdef drv_torque_control_phase_current_ampl
-    drv_motor.move(pwm/1000.0f*drv_max_usr_torque_curr);
+    drv_motor.target = (pwm/1000.0f*drv_max_usr_torque_curr);
     #endif
     #ifdef drv_torque_control_foc_current
-    rv_motor.move(pwm/1000.0f*drv_max_usr_torque_curr);
+    rv_motor.target = (pwm/1000.0f*drv_max_usr_torque_curr);
     #endif
 }
 
@@ -199,5 +208,9 @@ float BLDC_driver::get_current(){
 }
 
 void BLDC_driver::handler(){
+    // digitalWrite(auxpin, HIGH);
     drv_motor.loopFOC();
+    drv_motor.move();
+    drv_motor.monitor();
+    // digitalWrite(auxpin, LOW);
 }
