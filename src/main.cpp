@@ -3,6 +3,8 @@
 #include "latch.h"
 #include "gate.h"
 
+#define axupin 11
+
 #define GATE_SHORT // comment if compiling for long gate wing
 
 #ifdef GATE_SHORT
@@ -62,20 +64,57 @@ BLDC_driver BLDC;
 Gate gate(params);
 
 
+void BLDC_HandlerTask(void *pvParameters){
+  while(1){
+    digitalWrite(axupin, HIGH);
+    // BLDC.handler();
+    digitalWrite(axupin, LOW);
+    vTaskDelay(1);
+  }
+}
+
+void gate_HandlerTask(void *pvParameters){
+  while(1){
+    gate.loop();
+    vTaskDelay(10);
+  }
+}
+
 
 void setup() {
   Serial.begin(115200);
   delay(3000);
   Serial.println("Booted HoverGate V2!!!");
 
+  pinMode(axupin, OUTPUT);
+
   gate.set_driver(&BLDC);
   #ifndef GATE_SHORT
   gate.set_latch(&latch);
   #endif
 
-  gate.begin();
+  // gate.begin();
 
-  Serial.println("BLDC driver inited, entering loop...");
+  // xTaskCreate(
+  //   BLDC_HandlerTask,  /* Task function. */
+  //   "BLDC_HandlerTask",  /* String with name of task. */
+  //   2048,  /* Stack size in bytes. */
+  //   NULL,  /* Parameter passed as input of the task */
+  //   24,  /* Priority of the task. */
+  //   NULL);  /* Task handle. */
+  // Serial.println("Started BLDC handler task");
+
+  // xTaskCreate(
+  //   gate_HandlerTask,  /* Task function. */
+  //   "gate_HandlerTask",  /* String with name of task. */
+  //   2048,  /* Stack size in bytes. */
+  //   NULL,  /* Parameter passed as input of the task */
+  //   5,  /* Priority of the task. */
+  //   NULL);  /* Task handle. */
+  // Serial.println("Started gate handler task");
+
+  BLDC.begin();
+  Serial.println("Entering loop...");
 
 }
 
@@ -84,37 +123,30 @@ void setup() {
 void loop() {
   static uint32_t n = 0;
   static uint32_t last_t = millis();
-  static uint32_t last_t2 = millis();
   // put your main code here, to run repeatedly:
   BLDC.handler();
-
-  //gate handler 10ms event
-  if(millis()-last_t2 > 10){
-    //do stuff
-    last_t2 = millis();
-    gate.loop();
-  }
 
   // 1 per sec event
   if(millis() - last_t > 1000){
     last_t = millis();
 
-    if(n==5){
-      gate.open();
-      Serial.println("gate open");
-
-    }
-
-    if(n==30){
-      gate.close();
-      Serial.println("gate close");
-
-    }
-    // if(n==1){
-    //   BLDC.set_pwm(100);
-    //   Serial.println("BLDC set to 100");
+    // if(n==5){
+    //   gate.open();
+    //   Serial.println("gate open");
 
     // }
+
+    // if(n==30){
+    //   gate.close();
+    //   Serial.println("gate close");
+
+    // }
+    if(n==2){
+      BLDC.enable();
+      BLDC.set_pwm(100);
+      Serial.println("BLDC set to 100");
+
+    }
     // if(n==3){
     //   BLDC.set_pwm(0);
     //   Serial.println("BLDC set to 0");
@@ -140,12 +172,13 @@ void loop() {
     //   Serial.println("BLDC set to 0");
 
     // }
-    // if(n==20){
-    //   BLDC.disable();
-    //   BLDC.reset_encoder();
-    //   Serial.println("BLDC dissable");
+    if(n==20){
+      BLDC.disable();
+      BLDC.set_pwm(0);
+      BLDC.reset_encoder();
+      Serial.println("BLDC dissable");
 
-    // }
+    }
     
 
 

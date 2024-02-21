@@ -11,7 +11,7 @@
 
 #define drv_power_sply 15.0f
 
-#define drv_polePairs 15
+#define drv_polePairs 1
 #define drv_pwmA_pin 12
 #define drv_pwmB_pin 13
 #define drv_pwmC_pin 14
@@ -40,8 +40,8 @@
 #define drv_hall_direction CW
 
 // select torque controller
-#define drv_torque_control_voltage
-// #define drv_torque_control_phase_current_ampl
+// #define drv_torque_control_voltage
+#define drv_torque_control_phase_current_ampl
 // #define drv_torque_control_foc_current
 
 // select debug
@@ -51,7 +51,7 @@
 #define drv_skip_current_sense_align
 
 //skip hall sensor alignment (if offset and direction known, not needed)
-// #define drv_skip_hall_align
+#define drv_skip_hall_align
 
 
 
