@@ -24,7 +24,7 @@
 #define drv_hallC_pin 36
 #define drv_cal_pin 40
 #define drv_shunt_res 0.003f
-#define drv_shunt_gain -20.0f
+#define drv_shunt_gain (-20.0f)
 #define drv_driver_volt_limit 15.0f
 #define drv_align_voltage 2.0f
 
@@ -40,8 +40,8 @@
 #define drv_hall_direction CW
 
 // select torque controller
-// #define drv_torque_control_voltage
-#define drv_torque_control_phase_current_ampl
+#define drv_torque_control_voltage
+// #define drv_torque_control_phase_current_ampl
 // #define drv_torque_control_foc_current
 
 // select debug

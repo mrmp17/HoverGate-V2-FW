@@ -67,7 +67,7 @@ Gate gate(params);
 void BLDC_HandlerTask(void *pvParameters){
   while(1){
     digitalWrite(axupin, HIGH);
-    // BLDC.handler();
+    BLDC.handler();
     digitalWrite(axupin, LOW);
     vTaskDelay(1);
   }
@@ -75,7 +75,7 @@ void BLDC_HandlerTask(void *pvParameters){
 
 void gate_HandlerTask(void *pvParameters){
   while(1){
-    gate.loop();
+    // gate.loop();
     vTaskDelay(10);
   }
 }
@@ -88,33 +88,36 @@ void setup() {
 
   pinMode(axupin, OUTPUT);
 
-  gate.set_driver(&BLDC);
+  // gate.set_driver(&BLDC);
   #ifndef GATE_SHORT
   gate.set_latch(&latch);
   #endif
 
   // gate.begin();
-
-  // xTaskCreate(
-  //   BLDC_HandlerTask,  /* Task function. */
-  //   "BLDC_HandlerTask",  /* String with name of task. */
-  //   2048,  /* Stack size in bytes. */
-  //   NULL,  /* Parameter passed as input of the task */
-  //   24,  /* Priority of the task. */
-  //   NULL);  /* Task handle. */
-  // Serial.println("Started BLDC handler task");
-
-  // xTaskCreate(
-  //   gate_HandlerTask,  /* Task function. */
-  //   "gate_HandlerTask",  /* String with name of task. */
-  //   2048,  /* Stack size in bytes. */
-  //   NULL,  /* Parameter passed as input of the task */
-  //   5,  /* Priority of the task. */
-  //   NULL);  /* Task handle. */
-  // Serial.println("Started gate handler task");
-
   BLDC.begin();
+
+  xTaskCreatePinnedToCore(
+    BLDC_HandlerTask,  /* Task function. */
+    "BLDC_HandlerTask",  /* String with name of task. */
+    4095,  /* Stack size in bytes. */
+    NULL,  /* Parameter passed as input of the task */
+    20,  /* Priority of the task. */
+    NULL,  /* Task handle. */
+    1); // core 1
+  Serial.println("Started BLDC handler task");
+
+  xTaskCreate(
+    gate_HandlerTask,  /* Task function. */
+    "gate_HandlerTask",  /* String with name of task. */
+    2048,  /* Stack size in bytes. */
+    NULL,  /* Parameter passed as input of the task */
+    5,  /* Priority of the task. */
+    NULL);  /* Task handle. */
+  Serial.println("Started gate handler task");
+
+  
   Serial.println("Entering loop...");
+
 
 }
 
@@ -124,7 +127,9 @@ void loop() {
   static uint32_t n = 0;
   static uint32_t last_t = millis();
   // put your main code here, to run repeatedly:
-  BLDC.handler();
+  // digitalWrite(axupin, HIGH);
+  // BLDC.handler();
+  // digitalWrite(axupin, LOW);
 
   // 1 per sec event
   if(millis() - last_t > 1000){
@@ -143,8 +148,17 @@ void loop() {
     // }
     if(n==2){
       BLDC.enable();
-      BLDC.set_pwm(100);
-      Serial.println("BLDC set to 100");
+      BLDC.set_pwm(0);
+      Serial.println("BLDC set to 0");
+
+
+
+    }
+
+    if(n==5){
+      BLDC.enable();
+      BLDC.set_pwm(50);
+      Serial.println("BLDC set to 50");
 
     }
     // if(n==3){
@@ -182,7 +196,7 @@ void loop() {
     
 
 
-    // Serial.println("phase current: " + String(BLDC.get_current()));
+    Serial.println("phase current: " + String(BLDC.get_current()));
     // Serial.println("angle " + String(BLDC.get_angle()));
 
 

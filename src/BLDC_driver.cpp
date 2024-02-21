@@ -129,8 +129,8 @@ void BLDC_driver::begin(){
 
     //skip hall sensor align if #define set
     #ifdef drv_skip_hall_align
-    drv_motor.zero_electric_angle = 3.141593f;
-    drv_motor.sensor_direction = CW;
+    drv_motor.zero_electric_angle = drv_hall_offset;
+    drv_motor.sensor_direction = drv_hall_direction;
     #endif
 
     //init FOC
@@ -167,13 +167,19 @@ void BLDC_driver::set_pwm(int16_t pwm){
     if(pwm<-1000) pwm = -1000;
 
     #ifdef drv_torque_control_voltage
-    drv_motor.move(pwm/1000.0f*drv_max_usr_volt);
+    float set = pwm/1000.0f*drv_max_usr_volt;
+    drv_motor.move(set);
+    Serial.println("BLDC set to " + String(set));
     #endif
     #ifdef drv_torque_control_phase_current_ampl
-    drv_motor.move(pwm/1000.0f*drv_max_usr_torque_curr);
+    float set = pwm/1000.0f*drv_max_usr_torque_curr;
+    drv_motor.move(set);
+    Serial.println("BLDC set to " + String(set));
     #endif
     #ifdef drv_torque_control_foc_current
-    rv_motor.move(pwm/1000.0f*drv_max_usr_torque_curr);
+    float set = pwm/1000.0f*drv_max_usr_torque_curr;
+    drv_motor.move(set);
+    Serial.println("BLDC set to " + String(set));
     #endif
 }
 
