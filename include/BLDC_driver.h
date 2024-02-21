@@ -40,8 +40,8 @@
 #define drv_hall_direction CW
 
 // select torque controller
-#define drv_torque_control_voltage
-// #define drv_torque_control_phase_current_ampl
+// #define drv_torque_control_voltage
+#define drv_torque_control_phase_current_ampl
 // #define drv_torque_control_foc_current
 
 // select debug
