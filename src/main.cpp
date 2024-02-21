@@ -6,6 +6,7 @@ BLDC_driver BLDC;
 Latch latch;
 
 
+
 void setup() {
   Serial.begin(115200);
   delay(3000);
@@ -15,9 +16,12 @@ void setup() {
 
   latch.begin();
 
+
   Serial.println("BLDC driver inited, entering loop...");
 
 }
+
+
 
 void loop() {
   static uint32_t n = 0;

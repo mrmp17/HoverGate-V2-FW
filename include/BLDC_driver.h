@@ -11,7 +11,7 @@
 
 #define drv_power_sply 15.0f
 
-#define drv_polePairs 15
+#define drv_polePairs 1
 #define drv_pwmA_pin 12
 #define drv_pwmB_pin 13
 #define drv_pwmC_pin 14
