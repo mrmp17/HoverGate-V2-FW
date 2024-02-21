@@ -39,7 +39,9 @@ void Gate::begin() {
     if (driver == nullptr) return;
 
     driver->begin();
-    latch->begin();
+     if (latch != nullptr){
+        latch->begin();
+     }
     pid->start();
 
     state = GateState::closed;
