@@ -129,8 +129,8 @@ void BLDC_driver::begin(){
 
     //skip hall sensor align if #define set
     #ifdef drv_skip_hall_align
-    drv_motor.zero_electric_angle = 3.141593f;
-    drv_motor.sensor_direction = CW;
+    drv_motor.zero_electric_angle = drv_hall_offset;
+    drv_motor.sensor_direction = drv_hall_direction;
     #endif
 
     //init FOC
