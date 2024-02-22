@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/c++,macos,windows,visualstudiocode,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,macos,windows,visualstudiocode,python
 
+
+**/secrets.*
+
 ### C++ ###
 # Prerequisites
 *.d
