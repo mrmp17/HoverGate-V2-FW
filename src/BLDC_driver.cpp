@@ -107,6 +107,11 @@ void BLDC_driver::begin(){
     Serial.println("M: motor init done!");
     //todo: check if successful needed?
 
+    digitalWrite(drv_cal_pin, HIGH);
+    delay(2); //calibration takes 100us as per datasheet
+    digitalWrite(drv_cal_pin, LOW);
+    delay(2); //settle back to normal amplification
+
     //init current sense
     if (drv_current_sense.init())  Serial.println("Current sense init success!");
     else{
@@ -149,11 +154,17 @@ void BLDC_driver::begin(){
 }
 
 void BLDC_driver::enable(){
+    set_pwm(0); //just to be sure
     drv_driver.enable();
+    digitalWrite(drv_cal_pin, HIGH);
+    delay(2); //calibration takes 100us as per datasheet
+    digitalWrite(drv_cal_pin, LOW);
+    delay(2); //settle back to normal amplification
     BLDC_enabled = true;
 }
 
 void BLDC_driver::disable(){
+    set_pwm(0); //set to 0 before disabling
     drv_driver.disable();
     BLDC_enabled = false;
 }
@@ -199,6 +210,8 @@ float BLDC_driver::get_current(){
 }
 
 void BLDC_driver::handler(){
-    drv_motor.loopFOC();
-    drv_motor.move();
+    if(BLDC_enabled){
+        drv_motor.loopFOC();
+        drv_motor.move();
+    }
 }
