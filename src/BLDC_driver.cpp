@@ -167,19 +167,13 @@ void BLDC_driver::set_pwm(int16_t pwm){
     if(pwm<-1000) pwm = -1000;
 
     #ifdef drv_torque_control_voltage
-    float set = pwm/1000.0f*drv_max_usr_volt;
-    drv_motor.move(set);
-    Serial.println("BLDC set to " + String(set));
+    drv_motor.target = (pwm/1000.0f*drv_max_usr_volt);
     #endif
     #ifdef drv_torque_control_phase_current_ampl
-    float set = pwm/1000.0f*drv_max_usr_torque_curr;
-    drv_motor.move(set);
-    Serial.println("BLDC set to " + String(set));
+    drv_motor.target = (pwm/1000.0f*drv_max_usr_torque_curr);
     #endif
     #ifdef drv_torque_control_foc_current
-    float set = pwm/1000.0f*drv_max_usr_torque_curr;
-    drv_motor.move(set);
-    Serial.println("BLDC set to " + String(set));
+    rv_motor.target = (pwm/1000.0f*drv_max_usr_torque_curr);
     #endif
 }
 
@@ -206,4 +200,5 @@ float BLDC_driver::get_current(){
 
 void BLDC_driver::handler(){
     drv_motor.loopFOC();
+    drv_motor.move();
 }
