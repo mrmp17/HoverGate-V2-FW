@@ -75,7 +75,7 @@ void RemoteGate::stop() {
 
 void RemoteGate::toggle() {
     t_msg_esp_now msg;
-    msg.action_cmd = 4; //3 is toggle
+    msg.action_cmd = 4; //4 is toggle
     comms->send_msg(msg);
 }
 

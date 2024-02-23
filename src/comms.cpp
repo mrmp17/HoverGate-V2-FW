@@ -98,6 +98,7 @@ int CommsEspNow::begin(){
 
 int CommsEspNow::send_msg(t_msg_esp_now msg){
     //send message
+    msg_deliver_status = -1;
     esp_now_send(NULL, (uint8_t *) &msg, sizeof(msg));
     //wait for delivery
     unsigned long startWait = millis();

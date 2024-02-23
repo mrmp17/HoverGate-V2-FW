@@ -6,6 +6,7 @@
 #include <esp_now.h>
 #include "secrets.h"
 #include "comms.h"
+#include "remote_gate.h"
 
 // #define axupin 11
 
@@ -18,7 +19,9 @@
 // ######### //////// ############ /////////
 
 // select gate. define GATE_SHORT for short gate, comment out for long gate
-// #define GATE_SHORT // comment if compiling for long gate wing
+#define GATE_SHORT // comment if compiling for long gate wing
+
+#define SLAVE_COMMS_INERVAL 250 // ms
 
 #ifdef GATE_SHORT
 gate_params params {
@@ -78,6 +81,7 @@ Latch latch;
 #ifdef GATE_SHORT
 uint8_t mac_addr[] = mac_gate_long;
 CommsEspNow comms(mac_addr, wifi_ssid, wifi_password);
+RemoteGate remote_gate(&comms);
 #endif
 #ifndef GATE_SHORT
 uint8_t mac_addr[] = mac_gate_short;
@@ -100,8 +104,54 @@ void BLDC_HandlerTask(void *pvParameters){
 
 void gate_HandlerTask(void *pvParameters){
   while(1){
-    // gate.loop();
+    gate.loop();
     vTaskDelay(10);
+  }
+}
+
+void commsTask(void *pvParameters){
+  while(1){
+    #ifdef GATE_SHORT
+    remote_gate.loop();
+    #endif
+
+    // comms handling for long gate
+    #ifndef GATE_SHORT
+    // do incoming commands, periodic state report back to master
+    static unsigned long last_sent_time = millis();
+    if(millis() - last_sent_time > SLAVE_COMMS_INERVAL){
+      t_msg_esp_now msg;
+      msg.gate_state = static_cast<uint8_t>(gate.get_state());
+      msg.error_code = gate.get_error_code();
+      msg.gate_angle = gate.get_angle();
+      msg.bat_volt = 0; //todo: implement
+      msg.action_cmd = 0; // not in use. set to 0
+      msg.isShort = false;
+      comms.send_msg(msg);
+      //todo: what if delivery is not ok?
+      last_sent_time = millis();
+    }
+
+    // do incoming commands
+    if(comms.is_recv_available()){
+      t_msg_esp_now msg = comms.get_recv_msg();
+      if(msg.action_cmd == 0){
+        gate.open();
+      }
+      if(msg.action_cmd == 1){
+        gate.close();
+      }
+      if(msg.action_cmd == 2){
+        gate.reset();
+      }
+      if(msg.action_cmd == 3){
+        gate.stop();
+      }
+      if(msg.action_cmd == 4){
+        gate.toggle();
+      }
+    }
+    #endif
   }
 }
 
@@ -111,17 +161,38 @@ void setup() {
   Serial.begin(115200);
   delay(3000);
   Serial.println("Booted HoverGate V2!!!");
+  //identify gate
+  #ifdef GATE_SHORT
+  Serial.println("This is: SHORT GATE / MASTER");
+  #endif
+  #ifndef GATE_SHORT
+  Serial.println("This is: LONG GATE / SLAVE");
+  #endif
 
 
 
+  #ifdef GATE_SHORT
+  //establish comms with remote gate
+  remote_gate.begin();
+  #endif
 
   // gate.set_driver(&BLDC);
   #ifndef GATE_SHORT
   gate.set_latch(&latch);
+  comms.begin();
   #endif
 
-  // gate.begin();
-  BLDC.begin();
+  gate.begin();
+
+  xTaskCreate(
+    commsTask,  /* Task function. */
+    "commsTask",  /* String with name of task. */
+    2048,  /* Stack size in bytes. */
+    NULL,  /* Parameter passed as input of the task */
+    5,  /* Priority of the task. */
+    NULL);  /* Task handle. */
+  Serial.println("Started commsTask");
+
 
   xTaskCreatePinnedToCore(
     BLDC_HandlerTask,  /* Task function. */
@@ -143,14 +214,7 @@ void setup() {
   Serial.println("gate_HandlerTask");
 
   
-  // xTaskCreate(
-  //   espnowMsgRecvHandlerTask,  /* Task function. */
-  //   "espnowMsgRecvHandlerTask",  /* String with name of task. */
-  //   2048,  /* Stack size in bytes. */
-  //   NULL,  /* Parameter passed as input of the task */
-  //   5,  /* Priority of the task. */
-  //   NULL);  /* Task handle. */
-  // Serial.println("Started espnowMsgRecvHandlerTask");
+  
 
   // //needed only for long gate
   // #ifndef GATE_SHORT
