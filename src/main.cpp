@@ -5,6 +5,7 @@
 #include <WiFi.h>
 #include <esp_now.h>
 #include "secrets.h"
+#include "comms.h"
 
 // #define axupin 11
 
@@ -72,64 +73,21 @@ gate_params params {
 Latch latch;
 #endif
 
-// typedefs for ESP-NOW messages
-typedef struct MsgShortToLong {
-    uint8_t action_cmd;
-} t_msg_short_to_long;
 
-typedef struct MsgLongToShort {
-    uint8_t gate_state;
-    uint8_t error_code;
-    float gate_angle;
-    float bat_volt;
-} t_msg_long_to_short;
-
-//global variables for ESP-NOW comms messages
-static t_msg_short_to_long msg_short_to_long;
-static t_msg_long_to_short msg_long_to_short;
-uint32_t msg_num_recvd = 0; //to check for missed messages when processing. increments in callback, decrements at processing
-uint32_t msg_deliver_ok = 0; //flag to check if message was sent and delivered
-
+// instantiate comms object
 #ifdef GATE_SHORT
-// short gate sends to long gate mac
-uint8_t send_to_mac_addr[] = mac_gate_long;
+uint8_t mac_addr[] = mac_gate_long;
+CommsEspNow comms(mac_addr, wifi_ssid, wifi_password);
 #endif
 #ifndef GATE_SHORT
-// long gate sends to short gate mac
-uint8_t send_to_mac_addr[] = mac_gate_short;
+uint8_t mac_addr[] = mac_gate_short;
+CommsEspNow comms(mac_addr, wifi_ssid, wifi_password);
 #endif
-
 
 
 
 BLDC_driver BLDC;
 Gate gate(params);
-
-// ESP-NOW recv callback 
-void onEspnowRecv(const uint8_t * mac, const uint8_t *incomingData, int len){
-  //short gate is receiving from long
-  #ifdef GATE_SHORT
-  memcpy(&msg_long_to_short, incomingData, sizeof(msg_long_to_short));
-  #endif
-
-  //long gate is receiving from short
-  #ifndef GATE_SHORT
-  memcpy(&msg_short_to_long, incomingData, sizeof(msg_short_to_long));
-  #endif
-
-  msg_num_recvd++;
-}
-
-// ESP-NOW sent callback
-void onEspnowSent(const uint8_t *mac_addr, esp_now_send_status_t status){
-  if(status == ESP_NOW_SEND_SUCCESS){
-    msg_deliver_ok = 1;
-  }
-  else{
-    msg_deliver_ok = 0;
-  }
-  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "ESP-NOW packed delivered" : "ESP-NOW delivery fail");
-}
 
 
 
@@ -147,60 +105,60 @@ void gate_HandlerTask(void *pvParameters){
   }
 }
 
-//periodic sending task for long gate
-#ifndef GATE_SHORT
-void longGatePeriodicSendMsgTask(void *pvParameters){
-  while(1){
+// //periodic sending task for long gate
+// #ifndef GATE_SHORT
+// void longGatePeriodicSendMsgTask(void *pvParameters){
+//   while(1){
     
-    //long gate sends status periodically to short gate
-    msg_long_to_short.gate_state = static_cast<uint8_t>(gate.get_state());
-    msg_long_to_short.error_code = gate.get_error_code();
-    msg_long_to_short.gate_angle = gate.get_angle();
-    msg_long_to_short.bat_volt = 6.9; //TODO: read battery voltage
-    esp_now_send(NULL, (uint8_t *) &msg_long_to_short, sizeof(msg_long_to_short));
-    vTaskDelay(250);
-  }
-}
-#endif
+//     //long gate sends status periodically to short gate
+//     msg_long_to_short.gate_state = static_cast<uint8_t>(gate.get_state());
+//     msg_long_to_short.error_code = gate.get_error_code();
+//     msg_long_to_short.gate_angle = gate.get_angle();
+//     msg_long_to_short.bat_volt = 6.9; //TODO: read battery voltage
+//     esp_now_send(NULL, (uint8_t *) &msg_long_to_short, sizeof(msg_long_to_short));
+//     vTaskDelay(250);
+//   }
+// }
+// #endif
 
-void espnowMsgRecvHandlerTask(void *pvParameters){
-  while(1){
-    //process received messages
-    if(msg_num_recvd > 0){
-      if(msg_num_recvd > 1){
-        Serial.println("Missed messages: " + String(msg_num_recvd-1));
-        //notify for missed messages. only last one is saved
-      }
-      //short gate
-      #ifdef GATE_SHORT
-      //waiting for status packets from long gate and checking if alive
-      //todo: add some structure of (remote) long gate status (similar to local gate)
-      #endif
-      //long gate
-      #ifndef GATE_SHORT
-      //waiting for commands from short gate and execute cmds
-      uint8_t action_cmd = msg_short_to_long.action_cmd;
-      switch (action_cmd){
-        case 0:
-          gate.open();
-          break;
-        case 1:
-          gate.close();
-          break;
-        case 2:
-          gate.reset();
-          break;
-        case 3:
-          gate.stop();
-          break;
-        default:
-          break;
-        }
-      #endif
+// void espnowMsgRecvHandlerTask(void *pvParameters){
+//   while(1){
+//     //process received messages
+//     if(msg_num_recvd > 0){
+//       if(msg_num_recvd > 1){
+//         Serial.println("Missed messages: " + String(msg_num_recvd-1));
+//         //notify for missed messages. only last one is saved
+//       }
+//       //short gate
+//       #ifdef GATE_SHORT
+//       //waiting for status packets from long gate and checking if alive
+//       //todo: add some structure of (remote) long gate status (similar to local gate)
+//       #endif
+//       //long gate
+//       #ifndef GATE_SHORT
+//       //waiting for commands from short gate and execute cmds
+//       uint8_t action_cmd = msg_short_to_long.action_cmd;
+//       switch (action_cmd){
+//         case 0:
+//           gate.open();
+//           break;
+//         case 1:
+//           gate.close();
+//           break;
+//         case 2:
+//           gate.reset();
+//           break;
+//         case 3:
+//           gate.stop();
+//           break;
+//         default:
+//           break;
+//         }
+//       #endif
 
-    }
-  }
-}
+//     }
+//   }
+// }
 
 
 void setup() {
@@ -208,62 +166,6 @@ void setup() {
   delay(3000);
   Serial.println("Booted HoverGate V2!!!");
 
-  //set wifi mode
-  WiFi.mode(WIFI_STA);
-
-  Serial.println("Connecting to Wi-Fi...");
-  unsigned long startConnect = millis();
-  // connecting to WiFi so ESP-NOW is on the same channel
-  WiFi.begin("ssid", "password");
-  // Wait until the connection has been established. 10s timeout
-  while (WiFi.status() != WL_CONNECTED && millis() - startConnect < 10000) {
-    delay(500);
-    Serial.print(".");
-  }
-  if(WiFi.status() != WL_CONNECTED){
-    Serial.println("Failed to connect to Wi-Fi. ESP-NOW will use default channel. Will not retry WiFi connection.");
-    return;
-  }
-  else{
-    //connected, print IP and channel
-    Serial.println("Connected to Wi-Fi");
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
-    Serial.print("Wi-Fi Channel: ");
-    Serial.println(WiFi.channel());
-  }
-
-  //init ESP-NOW
-  if (esp_now_init() != ESP_OK) {
-      Serial.println("Error initializing ESP-NOW");
-      return;
-  }
-  else{
-      Serial.println("ESP-NOW init OK!");
-  }
-
-  //register ESP-NOW callbacks
-  esp_now_register_recv_cb(onEspnowRecv);
-  esp_now_register_send_cb(onEspnowSent);
-
-  // add ESP-NOW peer
-  esp_now_peer_info_t peerInfo;
-  memset(&peerInfo, 0, sizeof(peerInfo)); //all zeros
-  memcpy(peerInfo.peer_addr, send_to_mac_addr, 6); // Ensure receiver_mac is defined
-  peerInfo.channel = 0;  // same as WiFi channel (or default if not on wifi)
-  peerInfo.encrypt = false;
-
-  // add peer
-  if (esp_now_add_peer(&peerInfo) != ESP_OK) {
-      Serial.println("Failed to add peer");
-      return;
-  }
-  else{
-    Serial.println("Peer added");
-  }
-
-
-  
 
 
 
@@ -295,26 +197,26 @@ void setup() {
   Serial.println("gate_HandlerTask");
 
   
-  xTaskCreate(
-    espnowMsgRecvHandlerTask,  /* Task function. */
-    "espnowMsgRecvHandlerTask",  /* String with name of task. */
-    2048,  /* Stack size in bytes. */
-    NULL,  /* Parameter passed as input of the task */
-    5,  /* Priority of the task. */
-    NULL);  /* Task handle. */
-  Serial.println("Started espnowMsgRecvHandlerTask");
+  // xTaskCreate(
+  //   espnowMsgRecvHandlerTask,  /* Task function. */
+  //   "espnowMsgRecvHandlerTask",  /* String with name of task. */
+  //   2048,  /* Stack size in bytes. */
+  //   NULL,  /* Parameter passed as input of the task */
+  //   5,  /* Priority of the task. */
+  //   NULL);  /* Task handle. */
+  // Serial.println("Started espnowMsgRecvHandlerTask");
 
-  //needed only for long gate
-  #ifndef GATE_SHORT
-  xTaskCreate(
-    longGatePeriodicSendMsgTask,  /* Task function. */
-    "longGatePeriodicSendMsgTask",  /* String with name of task. */
-    2048,  /* Stack size in bytes. */
-    NULL,  /* Parameter passed as input of the task */
-    5,  /* Priority of the task. */
-    NULL);  /* Task handle. */
-  Serial.println("Started longGatePeriodicSendMsgTask");
-  #endif
+  // //needed only for long gate
+  // #ifndef GATE_SHORT
+  // xTaskCreate(
+  //   longGatePeriodicSendMsgTask,  /* Task function. */
+  //   "longGatePeriodicSendMsgTask",  /* String with name of task. */
+  //   2048,  /* Stack size in bytes. */
+  //   NULL,  /* Parameter passed as input of the task */
+  //   5,  /* Priority of the task. */
+  //   NULL);  /* Task handle. */
+  // Serial.println("Started longGatePeriodicSendMsgTask");
+  // #endif
   
   Serial.println("Entering loop...");
 
