@@ -105,60 +105,6 @@ void gate_HandlerTask(void *pvParameters){
   }
 }
 
-// //periodic sending task for long gate
-// #ifndef GATE_SHORT
-// void longGatePeriodicSendMsgTask(void *pvParameters){
-//   while(1){
-    
-//     //long gate sends status periodically to short gate
-//     msg_long_to_short.gate_state = static_cast<uint8_t>(gate.get_state());
-//     msg_long_to_short.error_code = gate.get_error_code();
-//     msg_long_to_short.gate_angle = gate.get_angle();
-//     msg_long_to_short.bat_volt = 6.9; //TODO: read battery voltage
-//     esp_now_send(NULL, (uint8_t *) &msg_long_to_short, sizeof(msg_long_to_short));
-//     vTaskDelay(250);
-//   }
-// }
-// #endif
-
-// void espnowMsgRecvHandlerTask(void *pvParameters){
-//   while(1){
-//     //process received messages
-//     if(msg_num_recvd > 0){
-//       if(msg_num_recvd > 1){
-//         Serial.println("Missed messages: " + String(msg_num_recvd-1));
-//         //notify for missed messages. only last one is saved
-//       }
-//       //short gate
-//       #ifdef GATE_SHORT
-//       //waiting for status packets from long gate and checking if alive
-//       //todo: add some structure of (remote) long gate status (similar to local gate)
-//       #endif
-//       //long gate
-//       #ifndef GATE_SHORT
-//       //waiting for commands from short gate and execute cmds
-//       uint8_t action_cmd = msg_short_to_long.action_cmd;
-//       switch (action_cmd){
-//         case 0:
-//           gate.open();
-//           break;
-//         case 1:
-//           gate.close();
-//           break;
-//         case 2:
-//           gate.reset();
-//           break;
-//         case 3:
-//           gate.stop();
-//           break;
-//         default:
-//           break;
-//         }
-//       #endif
-
-//     }
-//   }
-// }
 
 
 void setup() {
