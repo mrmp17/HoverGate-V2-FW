@@ -41,6 +41,7 @@ class RemoteGate {
         float get_battery_voltage();
         bool is_connected();
         void loop();
+        void send_cmd_raw(uint8_t cmd);
 
     private:
         CommsEspNow *comms;

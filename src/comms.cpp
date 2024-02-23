@@ -42,7 +42,7 @@ int CommsEspNow::begin(){
     Serial.println("Connecting to Wi-Fi...");
     unsigned long startConnect = millis();
     // connecting to WiFi so ESP-NOW is on the same channel
-    WiFi.begin("ssid", "password");
+    WiFi.begin(_wifi_ssid, _wifi_pass);
     // Wait until the connection has been established. 10s timeout
     while (WiFi.status() != WL_CONNECTED && millis() - startConnect < 10000) {
         delay(500);

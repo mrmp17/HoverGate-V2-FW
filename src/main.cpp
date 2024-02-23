@@ -19,7 +19,7 @@
 // ######### //////// ############ /////////
 
 // select gate. define GATE_SHORT for short gate, comment out for long gate
-#define GATE_SHORT // comment if compiling for long gate wing
+// #define GATE_SHORT // comment if compiling for long gate wing
 
 #define SLAVE_COMMS_INERVAL 250 // ms
 
@@ -135,23 +135,33 @@ void commsTask(void *pvParameters){
     // do incoming commands
     if(comms.is_recv_available()){
       t_msg_esp_now msg = comms.get_recv_msg();
-      if(msg.action_cmd == 0){
-        gate.open();
-      }
-      if(msg.action_cmd == 1){
-        gate.close();
-      }
-      if(msg.action_cmd == 2){
-        gate.reset();
-      }
-      if(msg.action_cmd == 3){
-        gate.stop();
-      }
-      if(msg.action_cmd == 4){
-        gate.toggle();
-      }
+      switch(msg.action_cmd) {
+      case 0:
+          gate.open();
+          break;
+      case 1:
+          gate.close();
+          break;
+      case 2:
+          gate.reset();
+          break;
+      case 3:
+          gate.stop();
+          break;
+      case 4:
+          gate.toggle();
+          break;
+      //for testing
+      case 5:
+        Serial.println("Received action_cmd 5");
+        break;
+      default:
+          // Handle invalid action_cmd values
+          break;
+}
     }
     #endif
+    vTaskDelay(10);
   }
 }
 
@@ -189,7 +199,7 @@ void setup() {
     "commsTask",  /* String with name of task. */
     2048,  /* Stack size in bytes. */
     NULL,  /* Parameter passed as input of the task */
-    5,  /* Priority of the task. */
+    1,  /* Priority of the task. */
     NULL);  /* Task handle. */
   Serial.println("Started commsTask");
 
@@ -209,7 +219,7 @@ void setup() {
     "gate_HandlerTask",  /* String with name of task. */
     2048,  /* Stack size in bytes. */
     NULL,  /* Parameter passed as input of the task */
-    5,  /* Priority of the task. */
+    1,  /* Priority of the task. */
     NULL);  /* Task handle. */
   Serial.println("gate_HandlerTask");
 
@@ -248,24 +258,29 @@ void loop() {
     //   Serial.println("gate open");
 
     // }
+    #ifdef GATE_SHORT
+    if(n%4 == 0){
+      remote_gate.send_cmd_raw(5);
+    }
+    #endif
 
     // if(n==30){
     //   gate.close();
     //   Serial.println("gate close");
 
     // }
-    if(n==2){
-      BLDC.enable();
-      BLDC.set_pwm(0);
-      Serial.println("BLDC set to 0");
-    }
+    // if(n==2){
+    //   BLDC.enable();
+    //   BLDC.set_pwm(0);
+    //   Serial.println("BLDC set to 0");
+    // }
 
-    if(n==5){
-      BLDC.enable();
-      BLDC.set_pwm(50);
-      Serial.println("BLDC set to 50");
+    // if(n==5){
+    //   BLDC.enable();
+    //   BLDC.set_pwm(50);
+    //   Serial.println("BLDC set to 50");
 
-    }
+    // }
     // if(n==3){
     //   BLDC.set_pwm(0);
     //   Serial.println("BLDC set to 0");
@@ -291,18 +306,21 @@ void loop() {
     //   Serial.println("BLDC set to 0");
 
     // }
-    if(n==20){
-      BLDC.disable();
-      BLDC.set_pwm(0);
-      BLDC.reset_encoder();
-      Serial.println("BLDC dissable");
+    // if(n==20){
+    //   BLDC.disable();
+    //   BLDC.set_pwm(0);
+    //   BLDC.reset_encoder();
+    //   Serial.println("BLDC dissable");
 
-    }
+    // }
     
 
 
-    Serial.println("phase current: " + String(BLDC.get_current()));
+    // Serial.println("phase current: " + String(BLDC.get_current()));
     // Serial.println("angle " + String(BLDC.get_angle()));
+    #ifdef GATE_SHORT
+    Serial.printf("connected: %d\n", remote_gate.is_connected());
+    #endif
 
 
     n++;

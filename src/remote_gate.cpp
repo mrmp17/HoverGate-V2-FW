@@ -79,6 +79,13 @@ void RemoteGate::toggle() {
     comms->send_msg(msg);
 }
 
+//send raw command
+void RemoteGate::send_cmd_raw(uint8_t cmd) {
+    t_msg_esp_now msg;
+    msg.action_cmd = cmd;
+    comms->send_msg(msg);
+}
+
 bool RemoteGate::is_connected() {
     return millis()-last_msg_time < last_msg_timeout;
 }
