@@ -41,6 +41,7 @@ int CommsEspNow::begin(){
     int success = 0;
     Serial.println("Connecting to Wi-Fi...");
     unsigned long startConnect = millis();
+    WiFi.mode(WIFI_AP_STA); //needed for reliable ESP-NOW
     // connecting to WiFi so ESP-NOW is on the same channel
     WiFi.begin(_wifi_ssid, _wifi_pass);
     // Wait until the connection has been established. 10s timeout
@@ -49,6 +50,10 @@ int CommsEspNow::begin(){
         Serial.print(".");
     }
     if(WiFi.status() != WL_CONNECTED){
+        //stop trying to connect to wifi
+        WiFi.disconnect();
+        //set wifi mode again to make sure it is correct
+        WiFi.mode(WIFI_AP_STA);
         Serial.println("Failed to connect to Wi-Fi. ESP-NOW will use default channel. Will not retry WiFi connection.");
         success = 1;
     }

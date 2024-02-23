@@ -19,7 +19,7 @@
 // ######### //////// ############ /////////
 
 // select gate. define GATE_SHORT for short gate, comment out for long gate
-// #define GATE_SHORT // comment if compiling for long gate wing
+#define GATE_SHORT // comment if compiling for long gate wing
 
 #define SLAVE_COMMS_INERVAL 250 // ms
 
@@ -120,6 +120,10 @@ void commsTask(void *pvParameters){
     // do incoming commands, periodic state report back to master
     static unsigned long last_sent_time = millis();
     if(millis() - last_sent_time > SLAVE_COMMS_INERVAL){
+      uint32_t t = millis();
+      digitalWrite(46, HIGH);
+      delay(10);
+      digitalWrite(46, LOW);
       t_msg_esp_now msg;
       msg.gate_state = static_cast<uint8_t>(gate.get_state());
       msg.error_code = gate.get_error_code();
@@ -128,6 +132,8 @@ void commsTask(void *pvParameters){
       msg.action_cmd = 0; // not in use. set to 0
       msg.isShort = false;
       comms.send_msg(msg);
+      //todo: need to do sth if this fails?
+      Serial.println("took " + String(millis()-t) + "ms to send msg.");
       //todo: what if delivery is not ok?
       last_sent_time = millis();
     }
@@ -169,6 +175,7 @@ void commsTask(void *pvParameters){
 
 void setup() {
   Serial.begin(115200);
+  pinMode(46, OUTPUT);
   delay(3000);
   Serial.println("Booted HoverGate V2!!!");
   //identify gate

@@ -24,7 +24,7 @@ class CommsEspNow {
         char _wifi_ssid[32];
         char _wifi_pass[64];
         uint8_t _peer_mac[6];
-        const uint32_t _espnow_send_timeout = 20; //ms
+        const uint32_t _espnow_send_timeout = 200; //ms
 
 };
 

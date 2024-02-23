@@ -7,6 +7,7 @@ RemoteGate::RemoteGate(CommsEspNow *comms_obj) {
 
 void RemoteGate::begin() {
     //begin comms
+    pinMode(46, OUTPUT);
     switch(comms->begin()){
         case 0:
             Serial.println("Comms begin success");
@@ -125,6 +126,9 @@ void RemoteGate::loop() {
     if(comms->is_recv_available()){
         last_msg = comms->get_recv_msg();
         last_msg_time = millis();
+        digitalWrite(46, HIGH);
+        delay(10);
+        digitalWrite(46, LOW);
     }
 }
 
