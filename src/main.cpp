@@ -133,7 +133,7 @@ void commsTask(void *pvParameters){
       msg.isShort = false;
       comms.send_msg(msg);
       //todo: need to do sth if this fails?
-      Serial.println("took " + String(millis()-t) + "ms to send msg.");
+      // Serial.println("took " + String(millis()-t) + "ms to send msg.");
       //todo: what if delivery is not ok?
       last_sent_time = millis();
     }

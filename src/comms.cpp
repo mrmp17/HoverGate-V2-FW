@@ -23,7 +23,7 @@ void onEspnowSent(const uint8_t *mac_addr, esp_now_send_status_t status){
   else{
     msg_deliver_status = 0;
   }
-  Serial.println(status == ESP_NOW_SEND_SUCCESS ? "ESP-NOW packed delivered" : "ESP-NOW delivery fail");
+//   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "ESP-NOW packed delivered" : "ESP-NOW delivery fail");
 }
 // #################
 
