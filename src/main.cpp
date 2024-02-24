@@ -27,12 +27,12 @@
 gate_params params {
     .loop_dt = 10, // milliseconds between loops
     .enc_ticks_per_deg = 2.725, // encoder ticks per degree of gate angle
-    .angle_open = -90.0, // angle when gate open
+    .angle_open = 90.0, // angle when gate open
     .angle_closed = 0.0, // angle when gate closed
     .a_max = 6.0,
     .v_max = 16.0,
     .v_min = 6.0,
-    .driver_open_dir = 1, // driver pwm sign for open direction. 1 or -1.
+    .driver_open_dir = -1, // driver pwm sign for open direction. 1 or -1.
     .max_pwm = 150, // max driver pwm
     .pid_kp = 30,
     .pid_ki = 2,
@@ -51,12 +51,12 @@ gate_params params {
 gate_params params {
     .loop_dt = 10, // milliseconds between loops
     .enc_ticks_per_deg = 6.1111, // encoder ticks per degree of gate angle
-    .angle_open = 90.0, // angle when gate open
+    .angle_open = -90.0, // angle when gate open
     .angle_closed = 0.0, // angle when gate closed
     .a_max = 4,
     .v_max = 12.0,
     .v_min = 4.0,
-    .driver_open_dir = -1, // driver pwm sign for open direction. 1 or -1.
+    .driver_open_dir = 1, // driver pwm sign for open direction. 1 or -1.
     .max_pwm = 150, // max driver pwm
     .pid_kp = 30,
     .pid_ki = 2,
@@ -262,15 +262,38 @@ void loop() {
   if(millis() - last_t > 1000){
     last_t = millis();
 
+    // if(n==2){
+    //     BLDC.enable();
+    //     BLDC.set_pwm(60);
+    //     delay(3000);
+    //     BLDC.set_pwm(0);
+    //     BLDC.disable();
+    //     // Serial.println("gate open");
+    // }
+    // if(n==3){
+    //   n = 2;
+    // }
+    #ifdef GATE_SHORT
     if(n==5){
       gate.open();
       Serial.println("gate open");
     }
 
+    if(n==7){
+      remote_gate.open();
+      Serial.println("remote gate open");
+    }
+
     if(n==25){
+      remote_gate.close();
+      Serial.println("remote gate close");
+    }
+
+    if(n==35){
       gate.close();
       Serial.println("gate close");
     }
+    #endif
 
     // #ifdef GATE_SHORT
     // if(n%4 == 0){
@@ -278,10 +301,10 @@ void loop() {
     // }
     // #endif
 
-    // if(n==30){
-    //   gate.close();
-    //   Serial.println("gate close");
-    // }
+    if(n==30){
+      gate.close();
+      Serial.println("gate close");
+    }
     
     // if(n==2){
     //   BLDC.enable();
@@ -333,11 +356,19 @@ void loop() {
     // Serial.println("phase current: " + String(BLDC.get_current()));
     // Serial.println("angle " + String(BLDC.get_angle()));
     #ifdef GATE_SHORT
-    Serial.printf("connected: %d\n", remote_gate.is_connected());
+    Serial.printf("remote connected: %d\n", remote_gate.is_connected());
     Serial.printf("gate state: %d\n", static_cast<uint8_t>(gate.get_state()));
     Serial.printf("gate angle: %f\n", gate.get_angle());
     Serial.println("error code: " + String(gate.get_error_code()));
-    Serial.printf("encoder: %d\n", BLDC.get_encoder());
+    Serial.printf("remote gate state: %d\n", static_cast<uint8_t>(remote_gate.get_state()));
+    Serial.println("remote error code: " + String(remote_gate.get_error_code()));
+    Serial.printf("remote gate angle: %f\n", remote_gate.get_angle());
+    #endif
+    
+    #ifndef GATE_SHORT
+    Serial.printf("gate state: %d\n", static_cast<uint8_t>(gate.get_state()));
+    Serial.printf("gate angle: %f\n", gate.get_angle());
+    Serial.println("error code: " + String(gate.get_error_code()));
     #endif
 
 

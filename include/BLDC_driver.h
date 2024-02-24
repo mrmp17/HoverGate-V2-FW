@@ -25,7 +25,7 @@
 #define drv_cal_pin 40
 #define drv_shunt_res 0.003f
 #define drv_shunt_gain (-20.0f)
-#define drv_driver_volt_limit 8.0f
+#define drv_driver_volt_limit 16.0f
 #define drv_align_voltage 2.0f
 
 //set_pwm maps -1000 to 1000 maps to +- these values (depending on voltage or phase current torque control)
@@ -36,8 +36,16 @@
 #define sw_encoder_ticks_per_rev 90
 
 // hardcoded hall offset and direction (used only if #define drv_skip_hall_align)
+
+//TODO: pass hardcoded values to constructor, if not passed, do calibration
+
+// for short gate
 #define drv_hall_offset 4.188790f
 #define drv_hall_direction CCW
+
+// //for long gate
+// #define drv_hall_offset 4.188791
+// #define drv_hall_direction CW
 
 // select torque controller
 #define drv_torque_control_voltage
