@@ -12,18 +12,13 @@
 
 // short gate is master (has RF, implements MQTT, commands long)
 
-// ######### //////// ############ /////////
-//     SELECT GATE (LONG OR SHORT) HERE
-// ######### //////// ############ /////////
-// ######### //////// ############ /////////
-// ######### //////// ############ /////////
+#if defined(GATE_SHORT) + defined(GATE_LONG) != 1
+#error "GATE_SHORT or GATE_LONG must be defined"
+#endif
 
-// select gate. define GATE_SHORT for short gate, comment out for long gate
-#define GATE_SHORT // comment if compiling for long gate wing
+#define SLAVE_COMMS_INTERVAL 250 // ms
 
-#define SLAVE_COMMS_INERVAL 250 // ms
-
-#ifdef GATE_SHORT
+#if defined(GATE_SHORT)
 gate_params params {
     .loop_dt = 10, // milliseconds between loops
     .enc_ticks_per_deg = 2.725, // encoder ticks per degree of gate angle
@@ -46,8 +41,10 @@ gate_params params {
     .max_angle_follow_error = 10.0, // max error when gate stopped is detected
     .hold_open_offset = -5.
 };
-#else
-// Long gate
+uint8_t mac_addr[] = mac_gate_long;
+CommsEspNow comms(mac_addr, wifi_ssid, wifi_password);
+RemoteGate remote_gate(&comms);
+#elif defined(GATE_LONG)
 gate_params params {
     .loop_dt = 10, // milliseconds between loops
     .enc_ticks_per_deg = 6.1111, // encoder ticks per degree of gate angle
@@ -70,30 +67,13 @@ gate_params params {
     .max_angle_follow_error = 10.0, // max error when gate stopped is detected
     .hold_open_offset = 6.
 };
-#endif
-
-#ifndef GATE_SHORT
 Latch latch;
-#endif
-
-
-// instantiate comms object
-#ifdef GATE_SHORT
-uint8_t mac_addr[] = mac_gate_long;
-CommsEspNow comms(mac_addr, wifi_ssid, wifi_password);
-RemoteGate remote_gate(&comms);
-#endif
-#ifndef GATE_SHORT
 uint8_t mac_addr[] = mac_gate_short;
 CommsEspNow comms(mac_addr, wifi_ssid, wifi_password);
 #endif
 
-
-
 BLDC_driver BLDC;
 Gate gate(params);
-
-
 
 void BLDC_HandlerTask(void *pvParameters){
   while(1){
@@ -111,22 +91,21 @@ void gate_HandlerTask(void *pvParameters){
 
 void commsTask(void *pvParameters){
   while(1){
-    #ifdef GATE_SHORT
+    #if defined(GATE_SHORT)
     remote_gate.loop();
-    #endif
 
     // comms handling for long gate
-    #ifndef GATE_SHORT
+    #elif defined(GATE_LONG)
     // do incoming commands, periodic state report back to master
     static unsigned long last_sent_time = millis();
-    if(millis() - last_sent_time > SLAVE_COMMS_INERVAL){
+    if(millis() - last_sent_time > SLAVE_COMMS_INTERVAL){
       uint32_t t = millis();
       digitalWrite(46, HIGH);
       delay(10);
       digitalWrite(46, LOW);
       t_msg_esp_now msg;
       msg.gate_state = static_cast<uint8_t>(gate.get_state());
-      msg.error_code = gate.get_error_code();
+      msg.error_code = static_cast<uint8_t>(gate.get_error_code());
       msg.gate_angle = gate.get_angle();
       msg.bat_volt = 0; //todo: implement
       msg.action_cmd = 0; // not in use. set to 0
@@ -171,44 +150,28 @@ void commsTask(void *pvParameters){
   }
 }
 
-
-
 void setup() {
   Serial.begin(115200);
   pinMode(46, OUTPUT);
   delay(3000);
   Serial.println("Booted HoverGate V2!!!");
-  //identify gate
-  #ifdef GATE_SHORT
-  Serial.println("This is: SHORT GATE / MASTER");
-  #endif
-  #ifndef GATE_SHORT
-  Serial.println("This is: LONG GATE / SLAVE");
-  #endif
 
-  // set hall align params to skip align
-  #ifdef GATE_SHORT
-  BLDC.set_hall_align_param(4.188790f, -1);
-  #endif
-  #ifndef GATE_SHORT
-  BLDC.set_hall_align_param(4.188791f, 1);
-  #endif
-
-
-
-  #ifdef GATE_SHORT
-  //establish comms with remote gate
-  remote_gate.begin();
-  #endif
-
-  // gate.set_driver(&BLDC);
-  #ifndef GATE_SHORT
-  gate.set_latch(&latch);
-  comms.begin();
+  #if defined(GATE_SHORT)
+  {
+    Serial.println("This is: SHORT GATE / MASTER");
+    BLDC.set_hall_align_param(4.188790f, -1);
+    remote_gate.begin();
+  }
+  #elif defined(GATE_LONG)
+  {
+    Serial.println("This is: LONG GATE / SLAVE");
+    BLDC.set_hall_align_param(4.188791f, 1);
+    gate.set_latch(&latch);
+    comms.begin();
+  }
   #endif
 
   gate.set_driver(&BLDC);
-
   gate.begin();
 
   xTaskCreate(
@@ -260,8 +223,6 @@ void setup() {
 
 }
 
-
-
 void loop() {
   static uint32_t n = 0;
   static uint32_t last_t = millis();
@@ -281,7 +242,7 @@ void loop() {
     // if(n==3){
     //   n = 2;
     // }
-    #ifdef GATE_SHORT
+    #if defined(GATE_SHORT)
     if(n==5){
       gate.open();
       Serial.println("gate open");
@@ -363,22 +324,20 @@ void loop() {
 
     // Serial.println("phase current: " + String(BLDC.get_current()));
     // Serial.println("angle " + String(BLDC.get_angle()));
-    #ifdef GATE_SHORT
+    #if defined(GATE_SHORT)
     Serial.printf("remote connected: %d\n", remote_gate.is_connected());
-    Serial.printf("gate state: %d\n", static_cast<uint8_t>(gate.get_state()));
+    Serial.printf("gate state: %s\n", gate.get_state_str());
     Serial.printf("gate angle: %f\n", gate.get_angle());
-    Serial.println("error code: " + String(gate.get_error_code()));
-    Serial.printf("remote gate state: %d\n", static_cast<uint8_t>(remote_gate.get_state()));
-    Serial.println("remote error code: " + String(remote_gate.get_error_code()));
+    Serial.printf("error code: %s\n", gate.get_error_str());
+    Serial.printf("remote gate state: %s\n", remote_gate.get_state_str());
+    Serial.printf("remote error code: %s\n", remote_gate.get_error_str());
     Serial.printf("remote gate angle: %f\n", remote_gate.get_angle());
-    #endif
 
-    #ifndef GATE_SHORT
-    Serial.printf("gate state: %d\n", static_cast<uint8_t>(gate.get_state()));
+    #elif defined(GATE_LONG)
+    Serial.printf("gate state: %s\n", gate.get_state_str());
     Serial.printf("gate angle: %f\n", gate.get_angle());
-    Serial.println("error code: " + String(gate.get_error_code()));
+    Serial.printf("error code: %s\n", gate.get_error_str());
     #endif
-
 
     n++;
   }

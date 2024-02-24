@@ -12,7 +12,7 @@
 * 4 - connection lost (only on remote gate)
 */
 
-
+#include "gate_state.h"
 #include <stdint.h>
 #include <comms.h>
 
@@ -20,14 +20,6 @@
 
 class RemoteGate {
     public:
-        enum class GateState {
-            closed = 0,
-            opening = 1,
-            open = 2,
-            closing = 3,
-            error = 4,
-            not_connected = 5
-        };
         RemoteGate(CommsEspNow *comms);
         void begin();
         void open();
@@ -36,8 +28,10 @@ class RemoteGate {
         void stop();
         void reset();
         GateState get_state();
+        const char *get_state_str() { return state_2_str(get_state());}
         float get_angle();
-        uint8_t get_error_code();
+        ErrorCode get_error_code();
+        const char *get_error_str() { return error_2_str(get_error_code());}
         float get_battery_voltage();
         bool is_connected();
         void loop();

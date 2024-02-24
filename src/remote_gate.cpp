@@ -52,31 +52,31 @@ void RemoteGate::begin() {
 
 void RemoteGate::open() {
     t_msg_esp_now msg;
-    msg.action_cmd = 0; //0 is open
+    msg.action_cmd = static_cast<uint8_t>(GateCmd::open);
     comms->send_msg(msg);
 }
 
 void RemoteGate::close() {
     t_msg_esp_now msg;
-    msg.action_cmd = 1; //1 is close
+    msg.action_cmd = static_cast<uint8_t>(GateCmd::close);
     comms->send_msg(msg);
 }
 
 void RemoteGate::reset() {
     t_msg_esp_now msg;
-    msg.action_cmd = 2; //2 is reset
+    msg.action_cmd = static_cast<uint8_t>(GateCmd::reset);
     comms->send_msg(msg);
 }
 
 void RemoteGate::stop() {
     t_msg_esp_now msg;
-    msg.action_cmd = 3; //3 is stop
+    msg.action_cmd = static_cast<uint8_t>(GateCmd::stop);
     comms->send_msg(msg);
 }
 
 void RemoteGate::toggle() {
     t_msg_esp_now msg;
-    msg.action_cmd = 4; //4 is toggle
+    msg.action_cmd = static_cast<uint8_t>(GateCmd::toggle);
     comms->send_msg(msg);
 }
 
@@ -91,7 +91,7 @@ bool RemoteGate::is_connected() {
     return millis()-last_msg_time < last_msg_timeout;
 }
 
-RemoteGate::GateState RemoteGate::get_state() {
+GateState RemoteGate::get_state() {
     if(!is_connected()){
         return GateState::not_connected;
     }
@@ -112,11 +112,11 @@ float RemoteGate::get_angle() {
     return last_msg.gate_angle;
 }
 
-uint8_t RemoteGate::get_error_code() {
+ErrorCode RemoteGate::get_error_code() {
     if(is_connected()){
-        return last_msg.error_code;
+        return static_cast<ErrorCode>(last_msg.error_code);
     }
-    return 4; //not connected
+    return  ErrorCode::not_connected;
 
 }
 

@@ -5,6 +5,7 @@
 #ifndef HOVERGATE_V2_FW_GATE_H
 #define HOVERGATE_V2_FW_GATE_H
 
+#include "gate_state.h"
 #include "driver.h"
 #include "pid.h"
 #include "math.h"
@@ -36,13 +37,7 @@ struct gate_params {
 
 class Gate {
 public:
-    enum class GateState {
-        closed = 0,
-        opening = 1,
-        open = 2,
-        closing = 3,
-        error = 4
-    };
+    
 
     Gate();
     explicit Gate(gate_params params);
@@ -52,11 +47,13 @@ public:
     void toggle();
     void stop();
     GateState get_state();
+    const char *get_state_str() { return state_2_str(state); }
     float get_angle();
     void loop();
     void set_driver(Driver *driver);
     void set_latch(Latch *latch);
-    uint8_t get_error_code();
+    ErrorCode get_error_code();
+    const char *get_error_str() { return error_2_str(error_code); }
     void reset();
 
 private:
@@ -115,8 +112,7 @@ private:
      * 2 - gate did not stop at expected position
      * 3 - stopped manually
      */
-    uint8_t error_code = 0;
-
+    ErrorCode error_code = ErrorCode::no_error;
 
     // private functions
     void move_(double target);
