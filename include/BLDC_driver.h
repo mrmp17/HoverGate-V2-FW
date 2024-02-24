@@ -35,17 +35,6 @@
 //output of get_encoder is in ticks per rev (90 for hub motor) (from legacy implementation)
 #define sw_encoder_ticks_per_rev 90
 
-// hardcoded hall offset and direction (used only if #define drv_skip_hall_align)
-
-//TODO: pass hardcoded values to constructor, if not passed, do calibration
-
-// for short gate
-#define drv_hall_offset 4.188790f
-#define drv_hall_direction CCW
-
-// //for long gate
-// #define drv_hall_offset 4.188791
-// #define drv_hall_direction CW
 
 // select torque controller
 #define drv_torque_control_voltage
@@ -58,8 +47,7 @@
 //skip current sense alignment (if pins and gains set correctly, not needed)
 #define drv_skip_current_sense_align
 
-//skip hall sensor alignment (if offset and direction known, not needed)
-#define drv_skip_hall_align
+
 
 
 
@@ -68,6 +56,7 @@
 class BLDC_driver : public Driver {
 public:
     BLDC_driver();
+    // BLDC_driver(float hall_offset, int hall_direction);
     void begin() override;
     void enable() override;
     bool is_enabled() override;
@@ -79,6 +68,7 @@ public:
     float get_angle() override;
     void reset_encoder() override;
     float get_current() override;
+    void set_hall_align_param(float hall_offset, int hall_direction) override;
     // void ramp_pwm(int16_t pwm_to, uint32_t time_ms) override;
     // bool is_ramp_active() override;
 
@@ -90,7 +80,9 @@ public:
 
 
 private:
-
+    bool hall_skip_align = false;
+    float hall_offset;
+    int hall_direction;
     bool BLDC_enabled = false;
     bool BLDC_direction = false;
     uint16_t BLDC_pwm_set_value = 0; //this should be 0-2k - direct pwm value

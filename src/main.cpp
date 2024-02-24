@@ -186,6 +186,14 @@ void setup() {
   Serial.println("This is: LONG GATE / SLAVE");
   #endif
 
+  // set hall align params to skip align
+  #ifdef GATE_SHORT
+  BLDC.set_hall_align_param(4.188790f, -1);
+  #endif
+  #ifndef GATE_SHORT
+  BLDC.set_hall_align_param(4.188791f, 1);
+  #endif
+
 
 
   #ifdef GATE_SHORT
@@ -364,7 +372,7 @@ void loop() {
     Serial.println("remote error code: " + String(remote_gate.get_error_code()));
     Serial.printf("remote gate angle: %f\n", remote_gate.get_angle());
     #endif
-    
+
     #ifndef GATE_SHORT
     Serial.printf("gate state: %d\n", static_cast<uint8_t>(gate.get_state()));
     Serial.printf("gate angle: %f\n", gate.get_angle());
