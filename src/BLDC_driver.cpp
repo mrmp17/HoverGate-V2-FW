@@ -211,7 +211,7 @@ float BLDC_driver::get_current(){
 
 void BLDC_driver::handler(){
     if(BLDC_enabled){
-        drv_motor.loopFOC();
         drv_motor.move();
     }
+    drv_motor.loopFOC();
 }
