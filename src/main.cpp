@@ -32,7 +32,7 @@ gate_params params {
     .a_max = 6.0,
     .v_max = 16.0,
     .v_min = 6.0,
-    .driver_open_dir = -1, // driver pwm sign for open direction. 1 or -1.
+    .driver_open_dir = 1, // driver pwm sign for open direction. 1 or -1.
     .max_pwm = 150, // max driver pwm
     .pid_kp = 30,
     .pid_ki = 2,
@@ -199,6 +199,8 @@ void setup() {
   comms.begin();
   #endif
 
+  gate.set_driver(&BLDC);
+
   gate.begin();
 
   xTaskCreate(
@@ -260,22 +262,27 @@ void loop() {
   if(millis() - last_t > 1000){
     last_t = millis();
 
-    // if(n==5){
-    //   gate.open();
-    //   Serial.println("gate open");
-
-    // }
-    #ifdef GATE_SHORT
-    if(n%4 == 0){
-      remote_gate.send_cmd_raw(5);
+    if(n==5){
+      gate.open();
+      Serial.println("gate open");
     }
-    #endif
+
+    if(n==25){
+      gate.close();
+      Serial.println("gate close");
+    }
+
+    // #ifdef GATE_SHORT
+    // if(n%4 == 0){
+    //   remote_gate.send_cmd_raw(5);
+    // }
+    // #endif
 
     // if(n==30){
     //   gate.close();
     //   Serial.println("gate close");
-
     // }
+    
     // if(n==2){
     //   BLDC.enable();
     //   BLDC.set_pwm(0);
@@ -327,6 +334,10 @@ void loop() {
     // Serial.println("angle " + String(BLDC.get_angle()));
     #ifdef GATE_SHORT
     Serial.printf("connected: %d\n", remote_gate.is_connected());
+    Serial.printf("gate state: %d\n", static_cast<uint8_t>(gate.get_state()));
+    Serial.printf("gate angle: %f\n", gate.get_angle());
+    Serial.println("error code: " + String(gate.get_error_code()));
+    Serial.printf("encoder: %d\n", BLDC.get_encoder());
     #endif
 
 

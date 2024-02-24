@@ -9,9 +9,9 @@
 #include "driver.h"
 #include <SimpleFOC.h>
 
-#define drv_power_sply 15.0f
+#define drv_power_sply 36.0f
 
-#define drv_polePairs 1
+#define drv_polePairs 15
 #define drv_pwmA_pin 12
 #define drv_pwmB_pin 13
 #define drv_pwmC_pin 14
@@ -25,7 +25,7 @@
 #define drv_cal_pin 40
 #define drv_shunt_res 0.003f
 #define drv_shunt_gain (-20.0f)
-#define drv_driver_volt_limit 15.0f
+#define drv_driver_volt_limit 8.0f
 #define drv_align_voltage 2.0f
 
 //set_pwm maps -1000 to 1000 maps to +- these values (depending on voltage or phase current torque control)
@@ -36,8 +36,8 @@
 #define sw_encoder_ticks_per_rev 90
 
 // hardcoded hall offset and direction (used only if #define drv_skip_hall_align)
-#define drv_hall_offset 3.141593f
-#define drv_hall_direction CW
+#define drv_hall_offset 4.188790f
+#define drv_hall_direction CCW
 
 // select torque controller
 #define drv_torque_control_voltage
