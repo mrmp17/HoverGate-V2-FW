@@ -7,7 +7,8 @@ enum class GateState {
         open = 2,
         closing = 3,
         error = 4,
-        not_connected = 5
+        not_connected = 5,
+        resetting = 6
     };
 
 enum class GateCmd {
@@ -18,12 +19,16 @@ enum class GateCmd {
     toggle = 4
 };
 
-enum class ErrorCode {
-    no_error = 0,
+enum class GateError {
+    gate_ok = 0,
     stopped_before_expected = 1,
     not_stopped_expected = 2,
     stopped_manually = 3,
-    not_connected = 4
+    not_connected = 4,
+    short_gate_comm_dead = 5,
+    long_gate_comm_dead = 6,
+    short_gate_error = 7,
+    long_gate_error = 8
 };
 
 inline const char * state_2_str(GateState state) {
@@ -34,17 +39,22 @@ inline const char * state_2_str(GateState state) {
         case GateState::closing: return "closing";
         case GateState::error: return "error";
         case GateState::not_connected: return "not connected";
+        case GateState::resetting: return "resetting";
     }
     return "unknown";
 }
 
-inline const char * error_2_str(ErrorCode error) {
+inline const char * error_2_str(GateError error) {
     switch (error) {
-        case ErrorCode::no_error: return "no error";
-        case ErrorCode::stopped_before_expected: return "stopped before expected";
-        case ErrorCode::not_stopped_expected: return "not stopped expected";
-        case ErrorCode::stopped_manually: return "stopped manually";
-        case ErrorCode::not_connected: return "not connected";
+        case GateError::gate_ok: return "no error";
+        case GateError::stopped_before_expected: return "stopped before expected";
+        case GateError::not_stopped_expected: return "not stopped expected";
+        case GateError::stopped_manually: return "stopped manually";
+        case GateError::not_connected: return "not connected";
+        case GateError::short_gate_comm_dead: return "short gate comm dead";
+        case GateError::long_gate_comm_dead: return "long gate comm dead";
+        case GateError::short_gate_error: return "short gate error";
+        case GateError::long_gate_error: return "long gate error";
     }
     return "unknown";
 }

@@ -3,25 +3,14 @@
 
 //remote gate is used only on master (short) gate
 
-/*
-* Error codes:
-* 0 - no error
-* 1 - gate stopped before expected position
-* 2 - gate did not stop at expected position
-* 3 - stopped manually
-* 4 - connection lost (only on remote gate)
-*/
-
 #include "gate_state.h"
 #include <stdint.h>
 #include <comms.h>
 
-#endif
-
 class RemoteGate {
     public:
         RemoteGate(CommsEspNow *comms);
-        void begin();
+        bool begin();
         void open();
         void close();
         void toggle();
@@ -30,7 +19,7 @@ class RemoteGate {
         GateState get_state();
         const char *get_state_str() { return state_2_str(get_state());}
         float get_angle();
-        ErrorCode get_error_code();
+        GateError get_error_code();
         const char *get_error_str() { return error_2_str(get_error_code());}
         float get_battery_voltage();
         bool is_connected();
@@ -44,3 +33,5 @@ class RemoteGate {
         const uint32_t last_msg_timeout = 1000; //ms
 
 };
+
+#endif

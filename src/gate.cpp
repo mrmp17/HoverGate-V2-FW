@@ -109,7 +109,7 @@ void Gate::toggle() {
 
 void Gate::stop() {
     state = GateState::error;
-    error_code = ErrorCode::stopped_manually;
+    error_code = GateError::stopped_manually;
     active_move = {};
     move_state_ctrl = 0;
     set_pwm_(0);
@@ -163,11 +163,11 @@ void Gate::loop() {
                     break;
                 case move::move_status::stopped_before_expected:
                     state = GateState::error;
-                    error_code = ErrorCode::stopped_before_expected;
+                    error_code = GateError::stopped_before_expected;
                     break;
                 case move::move_status::not_stopped_expected:
                     state = GateState::error;
-                    error_code = ErrorCode::not_stopped_expected;
+                    error_code = GateError::not_stopped_expected;
                     break;
             }
         } break;
@@ -182,11 +182,11 @@ void Gate::loop() {
                     break;
                 case move::move_status::stopped_before_expected:
                     state = GateState::error;
-                    error_code = ErrorCode::stopped_before_expected;
+                    error_code = GateError::stopped_before_expected;
                     break;
                 case move::move_status::not_stopped_expected:
                     state = GateState::error;
-                    error_code = ErrorCode::not_stopped_expected;
+                    error_code = GateError::not_stopped_expected;
                     break;
             }
         } break;
@@ -417,7 +417,7 @@ void Gate::set_latch(Latch *new_latch) {
     latch = new_latch;
 }
 
-ErrorCode Gate::get_error_code() {
+GateError Gate::get_error_code() {
     return error_code;
 }
 
@@ -437,7 +437,7 @@ void Gate::reset() {
     disable_motor_();
     if (latch != nullptr) latch->extend();
     state = GateState::closed;
-    error_code = ErrorCode::no_error;
+    error_code = GateError::gate_ok;
 }
 
 void Gate::move_(double target) {

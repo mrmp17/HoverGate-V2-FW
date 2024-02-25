@@ -5,50 +5,36 @@ RemoteGate::RemoteGate(CommsEspNow *comms_obj) {
     comms = comms_obj;
 }
 
-void RemoteGate::begin() {
+bool RemoteGate::begin() {
     //begin comms
     pinMode(46, OUTPUT);
     switch(comms->begin()){
         case 0:
             Serial.println("Comms begin success");
-        break;
+            break;
         case 1:
             Serial.println("Comms begin ok, but no WiFi connection");
-        break;
+            break;
         case -1:
             Serial.println("Comms begin fail. Stopping here.");
-            while(1){
-                vTaskDelay(100);
-            };
-        break;
-
+            return false;
         default:
-        break;
+            break;
     }
     //wait for first status packet from long gate / slave
     Serial.println("Waiting for remote gate connection...");
     while(!comms->is_recv_available()){
-        Serial.print("-");
-        vTaskDelay(500);
+        vTaskDelay(100);
     }
     t_msg_esp_now firstMsg = comms->get_recv_msg();
     if(firstMsg.isShort){
         //no bueno, we are short gate
         Serial.println("Error: received message with isShort flag set - invalid! Stopping here");
-        while(1){
-            vTaskDelay(100);
-        }
+        return false;
     }
     Serial.println("Remote gate connected!");
-
+    return true;
 }
-
-//gate cmds:
-//0 - open
-//1 - close
-//2 - reset
-//3 - stop
-//4 - toggle
 
 void RemoteGate::open() {
     t_msg_esp_now msg;
@@ -88,7 +74,7 @@ void RemoteGate::send_cmd_raw(uint8_t cmd) {
 }
 
 bool RemoteGate::is_connected() {
-    return millis()-last_msg_time < last_msg_timeout;
+    return millis() - last_msg_time < last_msg_timeout;
 }
 
 GateState RemoteGate::get_state() {
@@ -112,11 +98,11 @@ float RemoteGate::get_angle() {
     return last_msg.gate_angle;
 }
 
-ErrorCode RemoteGate::get_error_code() {
+GateError RemoteGate::get_error_code() {
     if(is_connected()){
-        return static_cast<ErrorCode>(last_msg.error_code);
+        return static_cast<GateError>(last_msg.error_code);
     }
-    return  ErrorCode::not_connected;
+    return  GateError::not_connected;
 
 }
 

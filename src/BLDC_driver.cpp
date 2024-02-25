@@ -161,7 +161,7 @@ void BLDC_driver::begin(){
     drv_motor.initFOC();
     Serial.println("FOC init done!");
 
-    if(hall_skip_align){
+    if(!hall_skip_align){
         Serial.println("automatic hall align got data:");
         Serial.printf("Hall calib: zero: %f, dir: %d \n", drv_motor.zero_electric_angle, drv_motor.sensor_direction);
         Serial.println("help: dir vals: 1:CW  -1:CCW  0:UNKNOWN");

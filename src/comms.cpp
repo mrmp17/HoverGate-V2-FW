@@ -1,5 +1,7 @@
 #include "comms.h"
 
+static constexpr uint32_t wifi_connect_timeout = 10000UL; //ms
+
 // global variables for ESP-NOW comms messages
 // global becaus callback register doesnt support bind
 static t_msg_esp_now msg_esp_now_recv;
@@ -38,16 +40,15 @@ CommsEspNow::CommsEspNow(const uint8_t peer_mac[6], const char* ssid, const char
 // connects to wifi, sets up ESP-NOW and adds peer
 // returns 0 on success, -1 on critical error, 1 on wifi connection fail
 int CommsEspNow::begin(){
-    int success = 0;
+    int ret = 0;
     Serial.println("Connecting to Wi-Fi...");
     unsigned long startConnect = millis();
     WiFi.mode(WIFI_AP_STA); //needed for reliable ESP-NOW
     // connecting to WiFi so ESP-NOW is on the same channel
     WiFi.begin(_wifi_ssid, _wifi_pass);
-    // Wait until the connection has been established. 10s timeout
-    while (WiFi.status() != WL_CONNECTED && millis() - startConnect < 10000) {
+    // Wait until the connection has been established.
+    while (WiFi.status() != WL_CONNECTED && millis() - startConnect < wifi_connect_timeout) {
         delay(500);
-        Serial.print(".");
     }
     if(WiFi.status() != WL_CONNECTED){
         //stop trying to connect to wifi
@@ -55,7 +56,7 @@ int CommsEspNow::begin(){
         //set wifi mode again to make sure it is correct
         WiFi.mode(WIFI_AP_STA);
         Serial.println("Failed to connect to Wi-Fi. ESP-NOW will use default channel. Will not retry WiFi connection.");
-        success = 1;
+        ret = 1;
     }
     else{
         //connected, print IP and channel
@@ -69,8 +70,8 @@ int CommsEspNow::begin(){
     //init ESP-NOW
     if (esp_now_init() != ESP_OK) {
         Serial.println("Error initializing ESP-NOW");
-        success = -1;
-        return success;
+        ret = -1;
+        return ret;
         //no bueno without ESP-NOW
     }
     else{
@@ -91,14 +92,14 @@ int CommsEspNow::begin(){
     // add peer
     if (esp_now_add_peer(&peerInfo) != ESP_OK) {
         Serial.println("Failed to add peer");
-        success = -1;
-        return success;
+        ret = -1;
+        return ret;
         //no bueno without peer
     }
     else{
         Serial.println("Peer added");
     }
-    return success;
+    return ret;
 }
 
 int CommsEspNow::send_msg(t_msg_esp_now msg){

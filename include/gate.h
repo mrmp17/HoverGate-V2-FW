@@ -52,7 +52,7 @@ public:
     void loop();
     void set_driver(Driver *driver);
     void set_latch(Latch *latch);
-    ErrorCode get_error_code();
+    GateError get_error_code();
     const char *get_error_str() { return error_2_str(error_code); }
     void reset();
 
@@ -104,15 +104,7 @@ private:
     uint32_t last_tick_change_time = 0;
     uint8_t move_state_ctrl = 0;
     int8_t open_dir = 1;
-
-    /*
-     * Error codes:
-     * 0 - no error
-     * 1 - gate stopped before expected position
-     * 2 - gate did not stop at expected position
-     * 3 - stopped manually
-     */
-    ErrorCode error_code = ErrorCode::no_error;
+    GateError error_code = GateError::gate_ok;
 
     // private functions
     void move_(double target);
@@ -120,7 +112,6 @@ private:
     void set_pid_(double kp, double ki);
     void enable_motor_();
     void disable_motor_();
-
 
     // parameters
     uint16_t loop_dt = 10; // milliseconds between loops
