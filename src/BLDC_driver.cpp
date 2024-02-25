@@ -35,9 +35,9 @@ BLDC_driver::BLDC_driver(){
 
 
 void BLDC_driver::set_hall_align_param(float hall_offset, int hall_direction){
-    hall_offset = hall_offset;
-    hall_direction = hall_direction;
-    hall_skip_align = true;
+    this->hall_offset = hall_offset;
+    this->hall_direction = hall_direction;
+    this->hall_skip_align = true;
 }
 
 
@@ -142,8 +142,12 @@ void BLDC_driver::begin(){
     //skip hall sensor align if #define set
     if(hall_skip_align){
         drv_motor.zero_electric_angle = hall_offset;
-        if(hall_direction == 1) drv_motor.sensor_direction = Direction::CW;
-        if(hall_direction == -1) drv_motor.sensor_direction = Direction::CCW;
+        if(hall_direction == 1){
+            drv_motor.sensor_direction = Direction::CW;
+        }
+        else if(hall_direction == -1){
+            drv_motor.sensor_direction = Direction::CCW;
+        }
         else{
             Serial.println("Error: hall direction value invalid. stopping here!!");
             while(1){
@@ -157,10 +161,11 @@ void BLDC_driver::begin(){
     drv_motor.initFOC();
     Serial.println("FOC init done!");
 
-    #ifndef drv_skip_hall_align
-    Serial.printf("Hall calib: zero: %f, dir: %d \n", drv_motor.zero_electric_angle, drv_motor.sensor_direction);
-    Serial.println("help: dir vals: 1:CW  -1:CCW  0:UNKNOWN");
-    #endif
+    if(hall_skip_align){
+        Serial.println("automatic hall align got data:");
+        Serial.printf("Hall calib: zero: %f, dir: %d \n", drv_motor.zero_electric_angle, drv_motor.sensor_direction);
+        Serial.println("help: dir vals: 1:CW  -1:CCW  0:UNKNOWN");
+    }
 
     disable();
     //todo: is driver now enabled or not? check!

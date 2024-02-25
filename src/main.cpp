@@ -39,7 +39,7 @@ gate_params params {
     .move_uncert_before = 10.0, // degrees before target when velocity is reduced
     .move_uncert_after = 30.0, // degrees after target when velocity still set
     .max_angle_follow_error = 10.0, // max error when gate stopped is detected
-    .hold_open_offset = -5.
+    .hold_open_offset = 5.
 };
 uint8_t mac_addr[] = mac_gate_long;
 CommsEspNow comms(mac_addr, wifi_ssid, wifi_password);
@@ -65,7 +65,7 @@ gate_params params {
     .move_uncert_before = 10.0, // degrees before target when velocity is reduced
     .move_uncert_after = 30.0, // degrees after target when velocity still set
     .max_angle_follow_error = 10.0, // max error when gate stopped is detected
-    .hold_open_offset = 6.
+    .hold_open_offset = -6.
 };
 Latch latch;
 uint8_t mac_addr[] = mac_gate_short;
