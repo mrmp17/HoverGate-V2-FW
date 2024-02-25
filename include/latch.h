@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <Arduino.h>
 
-#define latch_sply_voltage 15.0f //V
+#define latch_sply_voltage 36.0f //V
 
 #define latch_pwm_pin 35
 #define latch_ledc_ch_to_use 0
