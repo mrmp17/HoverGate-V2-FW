@@ -12,8 +12,8 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "/Users/matej/Documents/projects/HoverGate-V2-FW/.pio/build/adafruit_feather_esp32s3/firmware.elf",
-            "projectEnvName": "adafruit_feather_esp32s3",
+            "executable": "/Users/matej/Documents/projects/HoverGate-V2-FW/.pio/build/gate_short/firmware.elf",
+            "projectEnvName": "gate_short",
             "toolchainBinDir": "/Users/matej/.platformio/packages/toolchain-xtensa-esp32s3/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "preLaunchTask": {
@@ -25,8 +25,8 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "/Users/matej/Documents/projects/HoverGate-V2-FW/.pio/build/adafruit_feather_esp32s3/firmware.elf",
-            "projectEnvName": "adafruit_feather_esp32s3",
+            "executable": "/Users/matej/Documents/projects/HoverGate-V2-FW/.pio/build/gate_short/firmware.elf",
+            "projectEnvName": "gate_short",
             "toolchainBinDir": "/Users/matej/.platformio/packages/toolchain-xtensa-esp32s3/bin",
             "internalConsoleOptions": "openOnSessionStart"
         },
@@ -34,8 +34,8 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (without uploading)",
-            "executable": "/Users/matej/Documents/projects/HoverGate-V2-FW/.pio/build/adafruit_feather_esp32s3/firmware.elf",
-            "projectEnvName": "adafruit_feather_esp32s3",
+            "executable": "/Users/matej/Documents/projects/HoverGate-V2-FW/.pio/build/gate_short/firmware.elf",
+            "projectEnvName": "gate_short",
             "toolchainBinDir": "/Users/matej/.platformio/packages/toolchain-xtensa-esp32s3/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "loadMode": "manual"
