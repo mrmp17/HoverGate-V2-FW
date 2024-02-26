@@ -18,7 +18,7 @@ static BLDCDriver3PWM drv_driver = BLDCDriver3PWM(drv_pwmA_pin, drv_pwmB_pin, dr
 //simplefoc hall sensor
 static HallSensor drv_sensor = HallSensor(drv_hallA_pin, drv_hallB_pin, drv_hallC_pin, drv_polePairs);
 //simplefoc current sensor
-static LowsideCurrentSense drv_current_sense = LowsideCurrentSense(drv_shunt_res, drv_shunt_gain, drv_snsA_pin, drv_snsB_pin, drv_snsC_pin);
+// static LowsideCurrentSense drv_current_sense = LowsideCurrentSense(drv_shunt_res, drv_shunt_gain, drv_snsA_pin, drv_snsB_pin, drv_snsC_pin);
 
 // interrupt routine initialization
 void drv_int_hall_A(){drv_sensor.handleA();}
@@ -57,9 +57,9 @@ void BLDC_driver::begin(){
     Serial.println("Hardware shunt amp calib done!");
 
     //needed to init current sense adc channels for some reason??? looks like SimpleFOC bug
-    analogRead(drv_snsA_pin);
-    analogRead(drv_snsB_pin);
-    analogRead(drv_snsC_pin);
+    // analogRead(drv_snsA_pin);
+    // analogRead(drv_snsB_pin);
+    // analogRead(drv_snsC_pin);
 
     //enable simplefoc debug if flag set in .h
     #ifdef SIMPLEFOC_DEBUG_ENABLE
@@ -94,17 +94,17 @@ void BLDC_driver::begin(){
     drv_motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
 
     //link current sense to driver
-    drv_current_sense.linkDriver(&drv_driver);
+    // drv_current_sense.linkDriver(&drv_driver);
 
     //set torque and motion controller
     #ifdef drv_torque_control_voltage
     drv_motor.torque_controller = TorqueControlType::voltage;
     #endif
     #ifdef drv_torque_control_phase_current_ampl
-    drv_motor.torque_controller = TorqueControlType::dc_current;
+    // drv_motor.torque_controller = TorqueControlType::dc_current;
     #endif
     #ifdef drv_torque_control_foc_current
-    drv_motor.torque_controller = TorqueControlType::foc_current;
+    // drv_motor.torque_controller = TorqueControlType::foc_current;
     #endif
     
     drv_motor.controller = MotionControlType::torque;
@@ -114,20 +114,20 @@ void BLDC_driver::begin(){
     Serial.println("M: motor init done!");
     //todo: check if successful needed?
 
-    digitalWrite(drv_cal_pin, HIGH);
-    delay(2); //calibration takes 100us as per datasheet
-    digitalWrite(drv_cal_pin, LOW);
-    delay(2); //settle back to normal amplification
+    // digitalWrite(drv_cal_pin, HIGH);
+    // delay(2); //calibration takes 100us as per datasheet
+    // digitalWrite(drv_cal_pin, LOW);
+    // delay(2); //settle back to normal amplification
 
     //init current sense
-    if (drv_current_sense.init())  Serial.println("Current sense init success!");
-    else{
-        Serial.println("Current sense init failed!");
-        return;
-    }
+    // if (drv_current_sense.init())  Serial.println("Current sense init success!");
+    // else{
+    //     Serial.println("Current sense init failed!");
+    //     return;
+    // }
 
     //link current sense to motor
-    drv_motor.linkCurrentSense(&drv_current_sense);
+    // drv_motor.linkCurrentSense(&drv_current_sense);
 
     // no need, done in initFOC automatically
     // //align current sense
@@ -136,7 +136,7 @@ void BLDC_driver::begin(){
 
     //skip current sense align if #define set
     #ifdef drv_skip_current_sense_align
-    drv_current_sense.skip_align = true;
+    // drv_current_sense.skip_align = true;
     #endif
 
     //skip hall sensor align if #define set
@@ -223,7 +223,8 @@ float BLDC_driver::get_angle(){
 
 //returns phase current amplitude in A
 float BLDC_driver::get_current(){
-    return drv_current_sense.getDCCurrent();
+    // return drv_current_sense.getDCCurrent();
+    return 0.0f; //not used currently
 
     //just for test
     // return drv_motor.shaftVelocity();
