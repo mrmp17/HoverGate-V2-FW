@@ -452,7 +452,7 @@ void mqtt_handler() {
   mqtt_client.loop();
   switch (ctrl) {
     case 0: // check wifi status
-      if (wifi_available && !mqtt_client.connected() && millis() - reconnect_time > connect_timeout) {
+      if (WiFi.isConnected() && !mqtt_client.connected() && millis() - reconnect_time > connect_timeout) {
         Serial.println("Reconnecting MQTT...");
         mqtt_available = false;
         mqtt_client.connect(client_id, mqtt_user, mqtt_password);
