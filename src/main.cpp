@@ -12,6 +12,7 @@
 #include "secrets.h"
 #include "comms.h"
 #include "remote_gate.h"
+#include "blinky.h"
 
 // short gate is master (has RF, implements MQTT, commands long)
 #if defined(GATE_SHORT) + defined(GATE_LONG) != 1
@@ -28,6 +29,7 @@ static constexpr uint32_t reset_timeout = 5000;
 // PINS
 static constexpr uint8_t rf_pin = 1;
 static constexpr uint8_t led_pin = 46;
+static constexpr uint8_t extr_led_pin = 21;
 
 // RF Remote
 static constexpr uint32_t rf_longpress_delay = 5000;
@@ -107,6 +109,9 @@ CommsEspNow comms(mac_addr, wifi_ssid, wifi_password);
 
 BLDC_driver BLDC;
 Gate local_gate(params);
+
+// status LED on gates
+Blinky blinky(extr_led_pin);
 
 
 
@@ -573,8 +578,30 @@ void main_task(void *pvParameters){
 #elif defined(GATE_LONG)
     slave_gate_loop();
 #endif
+
+    //status light set mode depending on gate status
+    if(local_gate.get_state() == GateState::closed){
+      blinky.set_off();
+    }
+    else if(local_gate.get_state() == GateState::open){
+      blinky.set_off();
+    }
+    else if(local_gate.get_state() == GateState::opening){
+      blinky.set_blink_normal();
+    }
+    else if(local_gate.get_state() == GateState::closing){
+      blinky.set_blink_normal();
+    }
+    else if(local_gate.get_state() == GateState::error){
+      blinky.set_blink_error();
+    }
+
+    blinky.handler();
+
     vTaskDelay(10);
   }
+
+  
 }
 
 void setup() {
@@ -583,6 +610,9 @@ void setup() {
   pinMode(rf_pin, INPUT_PULLUP);
   delay(3000);
   Serial.println("Booted HoverGate V2!!!");
+
+  blinky.begin();
+  blinky.set_on();
 
 #if defined(GATE_SHORT)
   Serial.println("This is: SHORT GATE / MASTER");
@@ -615,6 +645,7 @@ void setup() {
 
   local_gate.set_driver(&BLDC);
   local_gate.begin();
+  blinky.set_off(); //everything set for operation, turn off status LED
 
   xTaskCreatePinnedToCore(
     BLDC_HandlerTask,  /* Task function. */

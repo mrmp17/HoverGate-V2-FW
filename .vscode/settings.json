@@ -12,6 +12,8 @@
         "string_view": "cpp",
         "memory": "cpp",
         "initializer_list": "cpp",
-        "limits": "cpp"
+        "limits": "cpp",
+        "exception": "cpp",
+        "new": "cpp"
     }
 }
