@@ -158,7 +158,7 @@ void reset_gate() {
 
 void publish_state(GateState state) {
   if (mqtt_available) {
-    mqtt_client.publish(state_topic, state_2_str(state), true);
+    mqtt_client.publish(gate_state_topic, state_2_str(state), true);
   }
 }
 
@@ -417,19 +417,66 @@ void slave_gate_loop() {
 
 #if defined(GATE_SHORT)
 void send_mqtt_discovery_conf() {
-  JsonDocument doc;
-  doc["icon"] = "mdi:gate";
-  doc["command_topic"] = cmd_topic;
-  doc["state_topic"] = state_topic;
-  doc["availability_topic"] = avail_topic;
-  doc["unique_id"] = "hovergate_001";
-  doc["device"]["name"] = "HoverGate";
-  doc["device"]["identifiers"] = "hovergate_001";
-  doc["device"]["model"] = "v2";
-  doc["device"]["manufacturer"] = "PLab";
-  char buffer[512];
-  serializeJson(doc, buffer);
-  mqtt_client.publish("homeassistant/cover/hovergate/config", buffer, true);
+  { // gate
+    JsonDocument doc;
+    doc["command_topic"] = cmd_topic;
+    doc["state_topic"] = gate_state_topic;
+    doc["availability_topic"] = avail_topic;
+    doc["unique_id"] = gate_id;
+    doc["device_class"] = "gate";
+    doc["device"]["name"] = device_name;
+    doc["device"]["identifiers"] = device_id;
+    doc["device"]["model"] = device_model;
+    doc["device"]["manufacturer"] = device_manufacturer;
+    char buffer[512];
+    serializeJson(doc, buffer);
+    char topic[100];
+    sprintf(topic, "%s/cover/%s/config", discovery_prefix, gate_id);
+    mqtt_client.publish(topic, buffer, true);
+  }
+
+  { // error
+    JsonDocument doc;
+    doc["icon"] = "mdi:alert";
+    doc["state_topic"] = error_topic;
+    doc["availability_topic"] = avail_topic;
+    doc["unique_id"] = error_sen_id;
+    doc["device"]["identifiers"] = device_id;
+    char buffer[512];
+    serializeJson(doc, buffer);
+    char topic[100];
+    sprintf(topic, "%s/sensor/%s/config", discovery_prefix, error_sen_id);
+    mqtt_client.publish(topic, buffer, true);
+  }
+
+  { // battery voltage
+    JsonDocument doc;
+    doc["state_topic"] = batt_volt_topic;
+    doc["availability_topic"] = avail_topic;
+    doc["unique_id"] = batt_volt_sen_id;
+    doc["device_class"] = "voltage";
+    doc["device"]["identifiers"] = device_id;
+    char buffer[512];
+    serializeJson(doc, buffer);
+    char topic[100];
+    sprintf(topic, "%s/sensor/%s/config", discovery_prefix, batt_volt_sen_id);
+    mqtt_client.publish(topic, buffer, true);
+  }
+
+  { // reset
+    JsonDocument doc;
+    doc["command_topic"] = cmd_topic;
+    doc["availability_topic"] = avail_topic;
+    doc["unique_id"] = reset_btn_id;
+    doc["device_class"] = "restart";
+    doc["payload_press"] = "RESET";
+    doc["device"]["identifiers"] = device_id;
+    char buffer[512];
+    serializeJson(doc, buffer);
+    char topic[100];
+    sprintf(topic, "%s/button/%s/config", discovery_prefix, reset_btn_id);
+    mqtt_client.publish(topic, buffer, true);
+  }
 }
 
 void mqtt_callback(char* topic, byte* payload, unsigned int length) {
@@ -460,7 +507,8 @@ void mqtt_handler() {
       if (WiFi.isConnected() && !mqtt_client.connected() && millis() - reconnect_time > connect_timeout) {
         Serial.println("Reconnecting MQTT...");
         mqtt_available = false;
-        mqtt_client.connect(client_id, mqtt_user, mqtt_password);
+        mqtt_client.connect(client_id, mqtt_user, mqtt_password,
+                            avail_topic, 1, true, "offline");
         reconnect_time = millis();
         ctrl = 1;
       }
@@ -474,6 +522,7 @@ void mqtt_handler() {
         publish_error(master_error_code);
         send_mqtt_discovery_conf();
         mqtt_client.subscribe(cmd_topic);
+        mqtt_client.publish(error_topic, "NO_ERROR", true);
         Serial.println("Sent MQTT discovery config.");
         ctrl = 0;
       }
