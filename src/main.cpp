@@ -25,6 +25,7 @@ static constexpr uint32_t open_long_gate_delay = 1000L;
 static constexpr uint32_t close_short_gate_delay = 8000L;
 static constexpr uint32_t batt_volt_pub_interval = 10000L;
 static constexpr uint32_t reset_timeout = 5000;
+static constexpr uint32_t voltage_pub_interval = 5000; // ms
 
 // PINS
 static constexpr uint8_t rf_pin = 1;
@@ -41,6 +42,7 @@ static bool rf_long_flag = false;
 
 static uint32_t last_print_info_time = 0;
 static uint32_t last_reset = 0;
+static uint32_t last_batt_volt_pub_time = 0;
 
 #if defined(GATE_SHORT)
 gate_params params {
@@ -145,7 +147,8 @@ void toggle_gate() {
 
 void stop_gate() {
   Serial.println("CMD stop");
-  // TODO
+  local_gate.stop();
+  remote_gate.stop();
 }
 
 void reset_gate() {
@@ -165,12 +168,12 @@ void publish_state(GateState state) {
 void publish_error(GateError master_error, GateError gate_error = GateError::gate_ok) {
   if (mqtt_available) {
     if (gate_error != GateError::gate_ok) {
-      char buffer[50];
+      char buffer[100];
       sprintf(buffer, "Master error: %s, Gate error: %s", 
               error_2_str(master_error), error_2_str(gate_error));
       mqtt_client.publish(error_topic, buffer, true);
     } else {
-      char buffer[50];
+      char buffer[100];
        sprintf(buffer, "Master error: %s", error_2_str(master_error));
       mqtt_client.publish(error_topic, buffer, true);
     }
@@ -349,7 +352,7 @@ void master_gate_loop() {
         master_cmd_state = master_gate_state;
         master_error_code = GateError::gate_ok;
         Serial.println("Reset successful.");
-        mqtt_client.publish(error_topic, "NO_ERROR", "true");
+        publish_error(master_error_code);
       }
       break;
   }
@@ -358,6 +361,14 @@ void master_gate_loop() {
   if (master_gate_state != master_prev_state) {
     publish_state(master_gate_state);
     master_prev_state = master_gate_state;
+  }
+
+  // pub voltage
+  if (millis() - last_batt_volt_pub_time > batt_volt_pub_interval) {
+    last_batt_volt_pub_time = millis();
+    char buffer[15];
+    sprintf(buffer, "%f", 12.345);
+    mqtt_client.publish(batt_volt_topic, buffer, true);
   }
 }
 
@@ -419,6 +430,7 @@ void slave_gate_loop() {
 void send_mqtt_discovery_conf() {
   { // gate
     JsonDocument doc;
+    doc["name"] = "Gate";
     doc["command_topic"] = cmd_topic;
     doc["state_topic"] = gate_state_topic;
     doc["availability_topic"] = avail_topic;
@@ -437,6 +449,7 @@ void send_mqtt_discovery_conf() {
 
   { // error
     JsonDocument doc;
+    doc["name"] = "Error";
     doc["icon"] = "mdi:alert";
     doc["state_topic"] = error_topic;
     doc["availability_topic"] = avail_topic;
@@ -451,6 +464,7 @@ void send_mqtt_discovery_conf() {
 
   { // battery voltage
     JsonDocument doc;
+    doc["name"] = "Battery Voltage";
     doc["state_topic"] = batt_volt_topic;
     doc["availability_topic"] = avail_topic;
     doc["unique_id"] = batt_volt_sen_id;
@@ -522,7 +536,6 @@ void mqtt_handler() {
         publish_error(master_error_code);
         send_mqtt_discovery_conf();
         mqtt_client.subscribe(cmd_topic);
-        mqtt_client.publish(error_topic, "NO_ERROR", true);
         Serial.println("Sent MQTT discovery config.");
         ctrl = 0;
       }
@@ -718,7 +731,7 @@ void setup() {
   xTaskCreate(
     main_task,  /* Task function. */
     "main_task",  /* String with name of task. */
-    4095,  /* Stack size in bytes. */
+    20000,  /* Stack size in bytes. */
     NULL,  /* Parameter passed as input of the task */
     1,  /* Priority of the task. */
     NULL);  /* Task handle. */

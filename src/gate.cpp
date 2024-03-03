@@ -114,6 +114,7 @@ void Gate::stop() {
     move_state_ctrl = 0;
     set_pwm_(0);
     disable_motor_();
+    if (latch != nullptr) latch->extend();
 }
 
 GateState Gate::get_state() {
@@ -191,7 +192,7 @@ void Gate::loop() {
             }
         } break;
         case GateState::error: {
-            return;
+            // nothing to do
         } break;
     }
 
